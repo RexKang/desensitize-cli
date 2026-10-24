@@ -1,0 +1,16 @@
+# 统一按 LF 检出：Windows runner 默认 autocrlf 会把工作区改成 CRLF，
+# 导致 gofmt -l 认为所有 .go 文件都需要格式化（v0.2.0 首轮 CI 就栽在这）。
+* text=auto eol=lf
+
+*.go      text eol=lf
+*.md      text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+*.json    text eol=lf
+*.py      text eol=lf
+*.mod     text eol=lf
+*.sum     text eol=lf
+
+*.txt     text eol=lf
+*.bat     text eol=crlf
+*.ps1     text eol=crlf
