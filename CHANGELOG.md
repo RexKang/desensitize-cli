@@ -2,6 +2,20 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)，格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.5.2] - 2026-10-24
+
+把界面上缺的三块补上：目录选择、设置入口、空规则库的引导。
+
+### 修复
+
+- **规则库为空时看着像「什么都没加载」**：现在检测到规则库为空会自动切到「案例」页签，并在规则库页签里给出空状态与「去看案例 →」按钮
+- **没有设置入口**：右上角加「⚙ 设置」抽屉，可改递归、最多扫描文件数、备份方式（执行时生效）、报告路径
+- **目标路径只有文本框**：加「浏览…」目录选择器，列出盘符与子目录，可逐层进入，选中后回填路径
+
+### 新增
+
+- `/api/ls?path=` 目录浏览接口（列根目录 / 子目录、给上级路径，跳过隐藏目录，最多 500 项）
+
 ## [0.5.1] - 2026-10-24
 
 修「双击 exe 一闪而过」。
@@ -151,6 +165,7 @@
 - `tests/verify.py`：45 条断言，覆盖五种规则类型、编码写回、xlsx 数值/日期/公式、嵌套递归、隐藏目录
 - GitHub Actions：ubuntu-latest 3.10 / 3.13、windows-latest 3.12
 
+[0.5.2]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.5.2
 [0.5.1]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.5.1
 [0.5.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.5.0
 [0.4.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.4.0

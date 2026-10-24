@@ -11,21 +11,18 @@ body{margin:0;font:13.5px/1.6 system-ui,"Microsoft YaHei",sans-serif;color:#1f23
 .top .sp{flex:1}
 .btn{border:1px solid #d0d7de;background:#fff;border-radius:6px;padding:4px 9px;font:inherit;font-size:12px;cursor:pointer;color:#24292f;white-space:nowrap}
 .btn:hover{background:#f6f8fa}
-.btn.primary{background:#1f883d;border-color:#1f883d;color:#fff;font-weight:600}
-.btn.primary:hover{background:#1a7f37}
 .btn.blue{background:#0969da;border-color:#0969da;color:#fff;font-weight:600}
 .btn.mini{padding:1px 6px;font-size:11px}
 .btn.ghost{border-color:transparent;color:#0969da}
 .badge{display:inline-block;font-size:10.5px;padding:0 5px;border-radius:9px;background:#eef2f6;color:#57606a;line-height:16px}
-.badge.on{background:#dafbe1;color:#1a7f37}
-.badge.off{background:#f6f8fa;color:#8b949e}
 .badge.low{background:#dafbe1;color:#1a7f37}
 .badge.mid{background:#fff8c5;color:#9a6700}
 .badge.high{background:#ffebe9;color:#cf222e}
+.badge.todo{background:#f6f8fa;color:#8b949e;border:1px dashed #d0d7de}
 .panel{background:#fff;border:1px solid #e3e8ee;border-radius:8px;overflow:hidden}
 .ph{font-size:11px;letter-spacing:.04em;color:#8b949e;padding:8px 10px 4px;display:flex;align-items:center;gap:6px}
 .ph .sp{flex:1}
-.g{display:grid;grid-template-columns:236px minmax(0,1fr) 430px;gap:10px;padding:10px 14px 30px;align-items:start}
+.g{display:grid;grid-template-columns:252px minmax(0,1fr) 430px;gap:10px;padding:10px 14px 30px;align-items:start}
 .ritem{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;cursor:pointer;border-left:2px solid transparent}
 .ritem:hover{background:#f6f8fa}
 .ritem.on{background:#e7f0fb;border-left-color:#0969da}
@@ -34,13 +31,15 @@ body{margin:0;font:13.5px/1.6 system-ui,"Microsoft YaHei",sans-serif;color:#1f23
 .ptabs{display:flex;border-bottom:1px solid #eef1f4}
 .ptabs div{flex:1;text-align:center;padding:5px 0;font-size:11.8px;color:#57606a;cursor:pointer;border-bottom:2px solid transparent}
 .ptabs div.on{color:#0969da;font-weight:600;border-bottom-color:#0969da}
-.case{display:flex;align-items:center;gap:5px;padding:3px 6px;border-radius:6px;cursor:pointer}
+.case{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;cursor:pointer}
 .case:hover{background:#f6f8fa}
 .case .nm{flex:1;font-size:11.8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.case .d{font-size:10.5px;color:#8b949e;padding:0 6px 4px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{padding:18px 12px;text-align:center;color:#8b949e;font-size:12px}
+.empty .big{font-size:13px;color:#3d4451;margin-bottom:6px}
 .body{padding:2px 10px 10px}
 label.f{display:block;font-size:11.5px;color:#57606a;margin:7px 0 2px}
-input[type=text],select,textarea{width:100%;padding:4px 7px;border:1px solid #d0d7de;border-radius:6px;font:inherit;font-size:12px}
-textarea{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;min-height:44px;resize:vertical}
+input[type=text],select{width:100%;padding:4px 7px;border:1px solid #d0d7de;border-radius:6px;font:inherit;font-size:12px}
 .row{display:flex;gap:6px;align-items:center}
 .hint{font-size:11px;color:#8b949e}
 .split{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -52,18 +51,46 @@ table{width:100%;border-collapse:collapse}
 th,td{text-align:left;padding:3px 7px;border-bottom:1px solid #eef1f4;font-size:11.8px;vertical-align:top}
 th{color:#57606a;font-size:10.8px;font-weight:600;background:#fbfcfd}
 mark{background:#ffd8d3;color:#82071e;font-weight:600;padding:0 1px;border-radius:2px}
-pre.sample{margin:5px 0 0;font-family:ui-monospace,Consolas,monospace;font-size:11px;color:#3d4451;white-space:pre-wrap;line-height:1.5;background:#f6f8fa;border-radius:6px;padding:6px 8px}
 #banner{display:none;margin:8px 14px 0;padding:6px 10px;border-radius:6px;font-size:12px}
 #banner.err{display:block;background:#ffebe9;border:1px solid #f5c2c0;color:#cf222e}
 #banner.ok{display:block;background:#dafbe1;border:1px solid #aee9c1;color:#1a7f37}
 #banner.warn{display:block;background:#fff8c5;border:1px solid #eed888;color:#9a6700}
+.mask{position:fixed;inset:0;background:rgba(31,35,40,.28);display:none;z-index:20}
+.mask.on{display:block}
+.drawer{position:fixed;top:0;right:-420px;width:400px;height:100vh;background:#fff;border-left:1px solid #e3e8ee;z-index:21;transition:right .18s ease;display:flex;flex-direction:column}
+.drawer.on{right:0}
+.dh{padding:12px 14px;border-bottom:1px solid #eef1f4;display:flex;align-items:center;gap:8px}
+.dh .t{font-weight:700;font-size:14px}
+.dh .sp{flex:1}
+.db{overflow-y:auto;padding:4px 0 20px}
+.grp{padding:9px 14px 11px;border-bottom:1px solid #f4f6f8}
+.grp h4{margin:0 0 6px;font-size:11.5px;color:#57606a;letter-spacing:.04em}
+.ctl{display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 0}
+.ctl .sp{flex:1}
+input.n{width:60px;padding:2px 5px;font-size:11.5px}
+.radio{width:13px;height:13px;border:1px solid #d0d7de;border-radius:50%;display:inline-block;position:relative;cursor:pointer;flex:none}
+.radio.on{border-color:#0969da;border-width:4px}
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:30;background:rgba(31,35,40,.34)}
+.modal.on{display:flex}
+.pbox{background:#fff;border-radius:10px;width:580px;max-width:94vw;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 32px rgba(31,35,40,.24)}
+.pbox .hh{padding:11px 14px;border-bottom:1px solid #eef1f4;display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px}
+.pbox .hh .sp{flex:1}
+.pbox .bar{padding:8px 12px;border-bottom:1px solid #eef1f4;display:flex;gap:6px;align-items:center;background:#fbfcfd}
+.pbox .bar .sp{flex:1}
+.plist{overflow-y:auto;padding:4px 6px;min-height:240px}
+.pitem{padding:5px 8px;border-radius:6px;cursor:pointer;font-size:12.5px;display:flex;gap:6px;align-items:center}
+.pitem:hover{background:#eef2f6}
+.pitem .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pfoot{padding:8px 12px;border-top:1px solid #eef1f4;display:flex;gap:6px;align-items:center;background:#fbfcfd}
 </style></head><body>
 
 <div class="top">
   <h1>desensitize gui</h1>
   <span class="sub" id="sub">本机界面 · 只读预演</span>
   <span class="sp"></span>
+  <span class="badge" id="optSummary" title="点右边「设置」修改">递归 · 上限 200</span>
   <span class="badge" id="rulePath">rules.json</span>
+  <button class="btn" id="gearBtn" title="运行选项">⚙ 设置</button>
   <button class="btn" id="saveBtn">保存规则库</button>
   <button class="btn ghost" id="quitBtn">退出</button>
 </div>
@@ -72,8 +99,8 @@ pre.sample{margin:5px 0 0;font-family:ui-monospace,Consolas,monospace;font-size:
 <div class="g">
   <div class="panel">
     <div class="ptabs"><div class="on" id="tabRules">规则库 0</div><div id="tabCases">案例 0</div></div>
-    <div id="listRules" style="padding:2px 5px 6px;max-height:70vh;overflow:auto"></div>
-    <div id="listCases" style="padding:2px 5px 6px;max-height:70vh;overflow:auto;display:none"></div>
+    <div id="listRules" style="padding:2px 5px 6px;max-height:72vh;overflow:auto"></div>
+    <div id="listCases" style="padding:2px 5px 6px;max-height:72vh;overflow:auto;display:none"></div>
     <div style="padding:2px 9px 9px" class="row">
       <button class="btn" id="addBtn">+ 新增规则</button>
     </div>
@@ -87,12 +114,14 @@ pre.sample{margin:5px 0 0;font-family:ui-monospace,Consolas,monospace;font-size:
   <div class="panel">
     <div class="ph">空跑（只读）<span class="sp"></span><span class="hint" id="prevHint"></span></div>
     <div class="body">
-      <label class="f">目标路径（文件或目录）</label>
-      <input type="text" id="target" placeholder="D:\测试数据 或 ./sample.txt">
+      <label class="f">目标路径（目录或单个文件）</label>
+      <div class="row">
+        <input type="text" id="target" placeholder="点「浏览…」选目录，或直接粘贴路径">
+        <button class="btn" id="browseBtn">浏览…</button>
+      </div>
       <div class="row" style="margin-top:6px">
-        <label class="row" style="gap:5px"><span class="sw on" id="recSw"></span><span style="font-size:11.8px">递归子目录</span></label>
-        <span class="sp" style="flex:1"></span>
-        <button class="btn blue" id="runBtn">空跑</button>
+        <button class="btn blue" id="runBtn" style="flex:1">空跑</button>
+        <button class="btn" id="clearBtn">清空</button>
       </div>
       <div class="hint" style="margin-top:6px">空跑只算不写：不备份、不改文件、xlsx 连临时文件都不落。</div>
       <div id="summary" style="margin-top:8px"></div>
@@ -101,10 +130,62 @@ pre.sample{margin:5px 0 0;font-family:ui-monospace,Consolas,monospace;font-size:
   </div>
 </div>
 
+<div class="mask" id="maskOpt"></div>
+<div class="drawer" id="drawer">
+  <div class="dh"><span class="t">⚙ 运行选项</span><span class="sp"></span>
+    <button class="btn mini" id="closeOpt">×</button></div>
+  <div class="db">
+    <div class="grp">
+      <h4>扫描</h4>
+      <label class="ctl"><span class="sw on" id="swRec"></span>递归子目录<span class="sp"></span><span class="hint">--no-recursive 取消</span></label>
+      <label class="ctl">最多扫描文件数<input class="n" type="text" id="inLimit" value="200"><span class="sp"></span></label>
+      <div class="hint">目录很大先限个数，看命中面够了再全量。</div>
+    </div>
+    <div class="grp">
+      <h4>备份 <span class="badge todo">执行时生效</span></h4>
+      <label class="ctl"><span class="radio" data-b="zip"></span>整体打包<span class="sp"></span><span class="hint">上层目录 .bak.zip</span></label>
+      <label class="ctl"><span class="radio on" data-b="file"></span>按文件<span class="badge">默认</span><span class="sp"></span><span class="hint">同目录 .bak</span></label>
+      <label class="ctl"><span class="radio" data-b="none"></span>不备份<span class="sp"></span><span class="hint" style="color:#cf222e">无法回滚</span></label>
+      <div class="hint" style="margin-top:4px">这一版界面只做空跑，备份方式先记住，「执行」接通后直接用它。</div>
+    </div>
+    <div class="grp">
+      <h4>报告 <span class="badge todo">执行时生效</span></h4>
+      <label class="ctl">HTML 报告路径<input type="text" id="inReport" value="明细.html"><span class="sp"></span></label>
+    </div>
+    <div class="grp" style="border-bottom:none">
+      <h4>规则</h4>
+      <label class="ctl">规则文件<span class="sp"></span><span class="hint" id="optRulesPath"></span></label>
+      <div class="hint">保存时先备份旧文件；外部改过会拒绝覆盖。</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="picker">
+  <div class="pbox">
+    <div class="hh">选择目录<span class="sp"></span><span class="hint" id="pickPath" style="font-family:ui-monospace,Consolas,monospace"></span></div>
+    <div class="bar">
+      <button class="btn mini" id="pickUp">↑ 上级</button>
+      <button class="btn mini" id="pickRoots">盘符 / 根</button>
+      <span class="sp"></span>
+      <span class="hint" id="pickNote"></span>
+    </div>
+    <div class="plist" id="pickList"></div>
+    <div class="pfoot">
+      <span class="hint">点目录进入，点「选这个目录」确认当前层</span>
+      <span style="flex:1"></span>
+      <button class="btn" id="pickCancel">取消</button>
+      <button class="btn blue" id="pickOk">选这个目录</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const $ = s => document.querySelector(s);
+const token = new URLSearchParams(location.search).get('t') || '';
 let state = {rules: [], presets: [], rulesPath: '', rulesMtime: 0, version: ''};
 let sel = 0, tab = 'rules';
+let opts = {recursive: true, limit: 200, backup: 'file', report: '明细.html'};
+let pick = {path: '', parent: ''};
 
 function banner(kind, msg, action) {
   const b = $('#banner');
@@ -118,9 +199,9 @@ function banner(kind, msg, action) {
     btn.onclick = action.fn;
     b.append(btn);
   }
-  if (kind === 'ok') setTimeout(() => { b.className = ''; }, 4000);
+  if (kind === 'ok') setTimeout(() => { b.className = ''; }, 5000);
 }
-const token = new URLSearchParams(location.search).get('t') || '';
+
 async function api(path, body) {
   const opt = {headers: {'X-Token': token}};
   if (body !== undefined) {
@@ -129,12 +210,36 @@ async function api(path, body) {
     opt.body = JSON.stringify(body);
   }
   const r = await fetch(path, opt);
+  if (!r.ok && r.status !== 409) throw new Error('HTTP ' + r.status);
   return await r.json();
+}
+
+function emptyState(box, title, desc, actionLabel, actionFn) {
+  const d = document.createElement('div');
+  d.className = 'empty';
+  const t = document.createElement('div');
+  t.className = 'big';
+  t.textContent = title;
+  const p = document.createElement('div');
+  p.textContent = desc;
+  d.append(t, p);
+  if (actionLabel) {
+    const b = document.createElement('button');
+    b.className = 'btn blue';
+    b.style.marginTop = '8px';
+    b.textContent = actionLabel;
+    b.onclick = actionFn;
+    d.append(document.createElement('br'), b);
+  }
+  box.append(d);
 }
 
 function renderList() {
   const box = $('#listRules');
   box.innerHTML = '';
+  if (!state.rules.length) {
+    emptyState(box, '规则库是空的', '从内置案例挑一套，改完再保存成 rules.json。', '去看案例 →', () => showTab('cases'));
+  }
   state.rules.forEach((r, i) => {
     const d = document.createElement('div');
     d.className = 'ritem' + (i === sel && tab === 'rules' ? ' on' : '');
@@ -148,7 +253,7 @@ function renderList() {
     n.className = 'n';
     n.textContent = r.type || '';
     d.append(sw, nm, n);
-    d.onclick = () => { tab = 'rules'; sel = i; renderAll(); };
+    d.onclick = () => { showTab('rules'); sel = i; renderAll(); };
     box.append(d);
   });
   $('#tabRules').textContent = '规则库 ' + state.rules.length;
@@ -156,6 +261,7 @@ function renderList() {
   const cb = $('#listCases');
   cb.innerHTML = '';
   state.presets.forEach(p => {
+    const wrap = document.createElement('div');
     const d = document.createElement('div');
     d.className = 'case';
     const nm = document.createElement('span');
@@ -166,12 +272,24 @@ function renderList() {
     b.textContent = p.risk;
     d.append(nm, b);
     d.onclick = () => loadPreset(p);
-    cb.append(d);
+    const desc = document.createElement('div');
+    desc.className = 'd';
+    desc.textContent = (p.rules || []).length + ' 条 · ' + p.desc;
+    wrap.append(d, desc);
+    cb.append(wrap);
   });
   $('#tabCases').textContent = '案例 ' + state.presets.length;
 }
 
-function field(label, id, value, opts) {
+function showTab(name) {
+  tab = name;
+  $('#tabRules').classList.toggle('on', name === 'rules');
+  $('#tabCases').classList.toggle('on', name === 'cases');
+  $('#listRules').style.display = name === 'rules' ? '' : 'none';
+  $('#listCases').style.display = name === 'cases' ? '' : 'none';
+}
+
+function field(label, value, onchange, mono) {
   const w = document.createElement('div');
   const l = document.createElement('label');
   l.className = 'f';
@@ -179,9 +297,24 @@ function field(label, id, value, opts) {
   const inp = document.createElement('input');
   inp.type = 'text';
   inp.value = value === undefined || value === null ? '' : value;
-  inp.oninput = () => { opts.set(inp.value); };
+  if (mono) inp.style.fontFamily = 'ui-monospace,Consolas,monospace';
+  inp.oninput = () => onchange(inp.value);
   w.append(l, inp);
   return w;
+}
+
+function switchRow(label, get, set) {
+  const lab = document.createElement('label');
+  lab.className = 'row';
+  lab.style.gap = '4px';
+  const sw = document.createElement('span');
+  sw.className = 'sw' + (get() ? ' on' : '');
+  sw.onclick = () => { set(!get()); renderAll(); };
+  const sp = document.createElement('span');
+  sp.style.fontSize = '11.8px';
+  sp.textContent = label;
+  lab.append(sw, sp);
+  return lab;
 }
 
 function renderEditor() {
@@ -190,7 +323,8 @@ function renderEditor() {
   const r = state.rules[sel];
   if (!r) {
     $('#editTitle').textContent = '编辑';
-    box.innerHTML = '<div class="hint">左边选一条规则，或者点「+ 新增规则」。</div>';
+    $('#editHint').textContent = '';
+    box.innerHTML = '<div class="hint">左边选一条规则，或者从案例载入一套。</div>';
     return;
   }
   $('#editTitle').textContent = '编辑：' + (r.desc || r.id || '(未命名)');
@@ -208,64 +342,53 @@ function renderEditor() {
   tl.className = 'f'; tl.textContent = '类型';
   tw.append(tl, typeSel);
 
-  const idW = field('id', 'id', r.id, {set: v => r.id = v.trim()});
-  const descW = field('显示名', 'desc', r.desc, {set: v => r.desc = v});
   const two = document.createElement('div');
   two.className = 'split';
-  two.append(idW, descW);
+  two.append(
+    field('id', r.id, v => r.id = v.trim(), true),
+    field('显示名', r.desc, v => r.desc = v)
+  );
   box.append(tw, two);
 
   if (r.type === 'literal') {
-    box.append(field('find（要替换的字面串）', 'find', r.find, {set: v => r.find = v}));
+    box.append(field('find（要替换的字面串）', r.find, v => r.find = v, true));
   } else {
-    box.append(field('pattern（RE2，无 lookbehind）', 'pattern', r.pattern, {set: v => r.pattern = v}));
+    box.append(field('pattern（RE2，无 lookbehind）', r.pattern, v => r.pattern = v, true));
   }
-  box.append(field('replace（{stars} {keep:N} {head:N} {len} {gN}，空串=删除）', 'replace', r.replace, {set: v => r.replace = v}));
+  box.append(field('replace（{stars} {keep:N} {head:N} {len} {gN}，空=删除）', r.replace, v => r.replace = v, true));
 
   if (r.type === 'digits') {
-    box.append(field('length（数字位数）', 'length', r.length, {set: v => r.length = parseInt(v) || 0}));
+    box.append(field('length（位数）', r.length, v => r.length = parseInt(v) || 0));
   }
   if (r.type === 'ip_shift') {
-    box.append(field('first_octet（首段固定，可留空）', 'first_octet', r.first_octet, {set: v => r.first_octet = v === '' ? null : parseInt(v)}));
-    box.append(field('offset（其余段统一偏移）', 'offset', r.offset, {set: v => r.offset = v === '' ? null : parseInt(v)}));
-    box.append(field('source_cidrs（逗号分隔，只动这些网段）', 'cidrs', (r.source_cidrs || []).join(','), {
-      set: v => r.source_cidrs = v.split(',').map(s => s.trim()).filter(Boolean)
-    }));
+    box.append(field('first_octet（首段固定，留空=不固定）', r.first_octet, v => r.first_octet = v === '' ? null : parseInt(v)));
+    box.append(field('offset（其余段统一偏移）', r.offset, v => r.offset = v === '' ? null : parseInt(v)));
+    box.append(field('source_cidrs（逗号分隔，只动这些网段）', (r.source_cidrs || []).join(','),
+      v => r.source_cidrs = v.split(',').map(s => s.trim()).filter(Boolean), true));
   }
   if (r.type === 'hash') {
-    box.append(field('keep_tail（保留尾部几位）', 'keep_tail', r.keep_tail, {set: v => r.keep_tail = parseInt(v) || 0}));
-    box.append(field('salt（隔离项目用，可留空）', 'salt', r.salt, {set: v => r.salt = v}));
+    box.append(field('keep_tail（保留尾部几位）', r.keep_tail, v => r.keep_tail = parseInt(v) || 0));
+    box.append(field('salt（隔离项目用，可留空）', r.salt, v => r.salt = v));
   }
 
   const flags = document.createElement('div');
   flags.className = 'row';
   flags.style.cssText = 'margin-top:9px;gap:14px;flex-wrap:wrap';
-  const mk = (label, get, set) => {
-    const lab = document.createElement('label');
-    lab.className = 'row'; lab.style.gap = '4px';
-    const sw = document.createElement('span');
-    sw.className = 'sw' + (get() ? ' on' : '');
-    sw.onclick = () => { set(!get()); renderAll(); };
-    const sp = document.createElement('span');
-    sp.style.fontSize = '11.8px';
-    sp.textContent = label;
-    lab.append(sw, sp);
-    return lab;
-  };
   if (r.type === 'literal') {
-    flags.append(mk('word 边界（前面不能是字母数字）', () => r.boundary === 'word', v => r.boundary = v ? 'word' : 'none'));
+    flags.append(switchRow('word 边界', () => r.boundary === 'word', v => r.boundary = v ? 'word' : 'none'));
   } else {
-    flags.append(mk('digit_boundary（不切开长数字串）', () => !!r.digit_boundary, v => r.digit_boundary = v));
+    flags.append(switchRow('digit_boundary', () => !!r.digit_boundary, v => r.digit_boundary = v));
   }
-  flags.append(mk('ignore_case', () => !!r.ignore_case, v => r.ignore_case = v));
-  if (r.type === 'digits') flags.append(mk('skip_valid_date', () => !!r.skip_valid_date, v => r.skip_valid_date = v));
+  flags.append(switchRow('ignore_case', () => !!r.ignore_case, v => r.ignore_case = v));
+  if (r.type === 'digits') flags.append(switchRow('skip_valid_date', () => !!r.skip_valid_date, v => r.skip_valid_date = v));
   box.append(flags);
 
   const acts = document.createElement('div');
   acts.className = 'row';
   acts.style.marginTop = '10px';
   const del = document.createElement('button');
-  del.className = 'btn'; del.textContent = '删除这条';
+  del.className = 'btn';
+  del.textContent = '删除这条';
   del.style.cssText = 'color:#cf222e;border-color:#f0c8c8';
   del.onclick = () => { state.rules.splice(sel, 1); sel = Math.max(0, sel - 1); renderAll(); };
   acts.append(del);
@@ -276,30 +399,88 @@ function renderAll() { renderList(); renderEditor(); }
 
 async function loadPreset(p) {
   const list = p.rules || [];
-  if (state.rules.length && !confirm('用案例「' + p.name + '」的 ' + list.length + ' 条规则替换当前规则库？\n（还没保存，替换后可以再点保存；也可以先备份 rules.json）')) return;
+  if (state.rules.length && !confirm('用案例「' + p.name + '」的 ' + list.length + ' 条规则替换当前规则库？\n（想留底就先点右上角「保存规则库」）')) return;
   state.rules = JSON.parse(JSON.stringify(list));
   sel = 0;
-  tab = 'rules';
+  showTab('rules');
   renderAll();
-  banner('warn', '已载入案例「' + p.name + '」（' + list.length + ' 条，' + p.risk + '风险）。' + p.note);
+  banner('warn', '已载入案例「' + p.name + '」（' + list.length + ' 条 · ' + p.risk + '风险）。' + p.note);
 }
+
+async function ls(path) {
+  const res = await api('/api/ls' + (path ? '?path=' + encodeURIComponent(path) : ''));
+  if (!res.ok) { banner('err', res.error || '读目录失败'); return; }
+  const l = res.ls;
+  pick.path = l.path || '';
+  pick.parent = l.parent || '';
+  $('#pickPath').textContent = l.path || '（根目录）';
+  $('#pickNote').textContent = l.note || '';
+  const box = $('#pickList');
+  box.innerHTML = '';
+  if (!l.dirs.length) {
+    const d = document.createElement('div');
+    d.className = 'empty';
+    d.textContent = l.path ? '这个目录下没有子目录' : '没有可用根目录';
+    box.append(d);
+  }
+  l.dirs.forEach(x => {
+    const d = document.createElement('div');
+    d.className = 'pitem';
+    const ic = document.createElement('span');
+    ic.textContent = /^[A-Za-z]:[\\/]$/.test(x.path) ? '💽' : '📁';
+    const nm = document.createElement('span');
+    nm.className = 'nm';
+    nm.textContent = x.name;
+    d.append(ic, nm);
+    d.onclick = () => ls(x.path);
+    box.append(d);
+  });
+}
+
+$('#browseBtn').onclick = () => {
+  $('#picker').classList.add('on');
+  ls($('#target').value.trim() || '');
+};
+$('#pickCancel').onclick = () => $('#picker').classList.remove('on');
+$('#pickUp').onclick = () => ls(pick.parent || '');
+$('#pickRoots').onclick = () => ls('');
+$('#pickOk').onclick = () => {
+  if (pick.path) $('#target').value = pick.path;
+  $('#picker').classList.remove('on');
+};
+$('#picker').onclick = e => { if (e.target.id === 'picker') $('#picker').classList.remove('on'); };
+
+function renderOpts() {
+  $('#swRec').classList.toggle('on', opts.recursive);
+  $('#inLimit').value = opts.limit;
+  $('#optSummary').textContent = (opts.recursive ? '递归' : '不递归') + ' · 上限 ' + opts.limit;
+  document.querySelectorAll('.radio[data-b]').forEach(r => r.classList.toggle('on', r.dataset.b === opts.backup));
+}
+$('#gearBtn').onclick = () => { $('#maskOpt').classList.add('on'); $('#drawer').classList.add('on'); };
+$('#closeOpt').onclick = () => { $('#maskOpt').classList.remove('on'); $('#drawer').classList.remove('on'); };
+$('#maskOpt').onclick = () => { $('#maskOpt').classList.remove('on'); $('#drawer').classList.remove('on'); };
+$('#swRec').onclick = () => { opts.recursive = !opts.recursive; renderOpts(); };
+$('#inLimit').oninput = e => { opts.limit = parseInt(e.target.value) || 200; renderOpts(); };
+document.querySelectorAll('.radio[data-b]').forEach(r => {
+  r.onclick = () => { opts.backup = r.dataset.b; renderOpts(); };
+});
 
 async function runPreview() {
   const target = $('#target').value.trim();
-  if (!target) { banner('err', '先填目标路径'); return; }
+  if (!target) { banner('err', '先选目标路径（右边「浏览…」）'); return; }
+  if (!state.rules.length) { banner('err', '规则库是空的，先从案例载入一套'); return; }
   $('#runBtn').disabled = true;
   $('#prevHint').textContent = '跑着…';
   try {
-    const res = await api('/api/preview', {
-      target, rules: state.rules, recursive: $('#recSw').classList.contains('on'), limit: 200
-    });
-    if (!res.ok) { banner('err', res.error || '预演失败'); $('#prevHint').textContent = ''; return; }
+    const res = await api('/api/preview', {target, rules: state.rules, recursive: opts.recursive, limit: opts.limit});
+    if (!res.ok) { banner('err', res.error || '预演失败'); return; }
     renderPreview(res.result);
     banner('ok', '空跑完成：' + res.result.files + ' 个文件 / ' + res.result.hits + ' 处命中，未写盘。');
   } catch (e) {
-    banner('err', '请求失败: ' + e);
+    banner('err', '请求失败：' + e.message);
   } finally {
     $('#runBtn').disabled = false;
+    $('#prevHint').textContent = '';
   }
 }
 
@@ -310,7 +491,7 @@ function renderPreview(r) {
   const line = document.createElement('div');
   line.className = 'hint';
   line.textContent = r.files + ' 个文件 · ' + r.hits + ' 处 · ' + r.rows.length + ' 行明细'
-    + (r.truncated ? '（已截断，先处理更小的目录）' : '');
+    + (r.truncated ? '（已截断，先缩小范围）' : '');
   sum.append(line);
   (r.problems || []).slice(0, 5).forEach(p => {
     const d = document.createElement('div');
@@ -324,16 +505,16 @@ function renderPreview(r) {
   wrap.style.display = 'block';
   wrap.innerHTML = '';
   const t = document.createElement('table');
-  t.innerHTML = '<thead><tr><th style="width:96px">位置</th><th style="width:56px">规则</th><th>原文 → 替换后</th><th>上下文</th></tr></thead>';
+  t.innerHTML = '<thead><tr><th style="width:92px">位置</th><th style="width:54px">规则</th><th>原文 → 替换后</th><th>上下文</th></tr></thead>';
   const tb = document.createElement('tbody');
   r.rows.forEach(x => {
     const tr = document.createElement('tr');
-    const c1 = document.createElement('td'); c1.className = 'mono'; c1.style.fontSize = '11px'; c1.textContent = x.loc;
+    const c1 = document.createElement('td'); c1.style.cssText = 'font-size:11px;font-family:ui-monospace,Consolas,monospace'; c1.textContent = x.loc;
     const c2 = document.createElement('td'); c2.textContent = x.rule;
     const c3 = document.createElement('td'); c3.style.fontSize = '11px';
-    c3.innerHTML = '<span style="color:#cf222e"></span> → <b style="color:#1a7f37"></b>';
-    c3.children[0].textContent = x.before || '（空）';
-    c3.children[2].textContent = x.after || '（空）';
+    const s1 = document.createElement('span'); s1.style.color = '#cf222e'; s1.textContent = x.before || '（空）';
+    const s2 = document.createElement('b'); s2.style.color = '#1a7f37'; s2.textContent = x.after || '（空）';
+    c3.append(s1, document.createTextNode(' → '), s2);
     const c4 = document.createElement('td'); c4.style.cssText = 'font-size:11px;color:#3d4451';
     c4.innerHTML = (x.ctx || '').replace(/⟦/g, '<mark>').replace(/⟧/g, '</mark>');
     tr.append(c1, c2, c3, c4);
@@ -344,45 +525,58 @@ function renderPreview(r) {
 }
 
 async function saveRules() {
-  const res = await api('/api/rules', {rules: state.rules, baseMtime: state.rulesMtime});
-  if (res.ok) {
-    state.rulesMtime = res.mtime;
-    banner('ok', '已保存到 ' + state.rulesPath + (res.backup ? '（旧文件备份为 ' + res.backup.split(/[\\/]/).pop() + '）' : ''));
-  } else if (res.conflict) {
-    banner('warn', res.error, {label: '重新加载', fn: () => location.reload()});
-  } else {
-    banner('err', res.error || '保存失败');
+  try {
+    const res = await api('/api/rules', {rules: state.rules, baseMtime: state.rulesMtime});
+    if (res.ok) {
+      state.rulesMtime = res.mtime;
+      banner('ok', '已保存到 ' + state.rulesPath + (res.backup ? '（旧文件备份为 ' + res.backup.split(/[\\/]/).pop() + '）' : ''));
+    } else if (res.conflict) {
+      banner('warn', res.error, {label: '重新加载', fn: () => location.reload()});
+    } else {
+      banner('err', res.error || '保存失败');
+    }
+  } catch (e) {
+    banner('err', '保存失败：' + e.message);
   }
 }
 
 async function boot() {
-  const res = await api('/api/state');
-  if (!res.ok) { banner('err', res.error || '读取状态失败'); return; }
-  const s = res.state;
-  state = {rules: s.rules || [], presets: s.presets || [], rulesPath: s.rulesPath, rulesMtime: s.rulesMtime, version: s.version};
-  $('#rulePath').textContent = (s.rulesPath || 'rules.json').split(/[\\/]/).pop();
-  $('#sub').textContent = '本机界面 · ' + (s.version || '');
-  sel = 0;
-  renderAll();
+  try {
+    const res = await api('/api/state');
+    if (!res.ok) { banner('err', res.error || '读取状态失败'); return; }
+    const s = res.state;
+    state = {rules: s.rules || [], presets: s.presets || [], rulesPath: s.rulesPath, rulesMtime: s.rulesMtime, version: s.version};
+    $('#rulePath').textContent = (s.rulesPath || 'rules.json').split(/[\\/]/).pop();
+    $('#optRulesPath').textContent = s.rulesPath || '';
+    sel = 0;
+    renderAll();
+    renderOpts();
+    if (!state.rules.length) {
+      showTab('cases');
+      banner('warn', '规则库还是空的：左边点一个案例就有规则，改完点「保存规则库」。');
+    }
+  } catch (e) {
+    banner('err', '连不上本地服务：' + e.message);
+  }
 }
 
-$('#tabRules').onclick = () => { tab = 'rules'; $('#tabRules').classList.add('on'); $('#tabCases').classList.remove('on'); $('#listRules').style.display = ''; $('#listCases').style.display = 'none'; };
-$('#tabCases').onclick = () => { tab = 'cases'; $('#tabCases').classList.add('on'); $('#tabRules').classList.remove('on'); $('#listCases').style.display = ''; $('#listRules').style.display = 'none'; };
+$('#tabRules').onclick = () => showTab('rules');
+$('#tabCases').onclick = () => showTab('cases');
 $('#addBtn').onclick = () => {
   state.rules.push({id: 'rule' + (state.rules.length + 1), desc: '新规则', type: 'regex', pattern: '', replace: '{stars}', enabled: true});
   sel = state.rules.length - 1;
-  tab = 'rules';
-  $('#tabRules').click();
+  showTab('rules');
   renderAll();
 };
-$('#recSw').onclick = () => $('#recSw').classList.toggle('on');
 $('#runBtn').onclick = runPreview;
+$('#clearBtn').onclick = () => { $('#rowsWrap').style.display = 'none'; $('#rowsWrap').innerHTML = ''; $('#summary').innerHTML = ''; $('#prevHint').textContent = ''; };
 $('#saveBtn').onclick = saveRules;
-$('#quitBtn').onclick = async () => { await api('/api/quit', {}); document.body.innerHTML = '<p style="padding:24px;font:14px system-ui">已退出，可以关掉这个标签页。</p>'; };
+$('#quitBtn').onclick = async () => {
+  try { await api('/api/quit', {}); } catch (e) {}
+  document.body.innerHTML = '<p style="padding:24px;font:14px system-ui">已退出，可以关掉这个标签页。</p>';
+};
 
-// 心跳：页面关掉 12 秒后服务自己退出
 setInterval(() => api('/api/ping', {}).catch(() => {}), 4000);
-
 boot();
 </script>
 </body></html>

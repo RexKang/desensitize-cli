@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -272,5 +273,51 @@ func TestTokenIsRandom(t *testing.T) {
 	}
 	if len(a.Token()) != 32 {
 		t.Errorf("token 长度 = %d, 期望 32", len(a.Token()))
+	}
+}
+
+func TestLsRootsAndDir(t *testing.T) {
+	s, _ := newTestServer(t)
+
+	rec := do(s, "GET", "/api/ls", nil, true)
+	var roots struct {
+		OK bool   `json:"ok"`
+		LS lsResp `json:"ls"`
+	}
+	_ = json.Unmarshal(rec.Body.Bytes(), &roots)
+	if !roots.OK || len(roots.LS.Dirs) == 0 {
+		t.Fatalf("应当能列出根目录: %s", rec.Body.String())
+	}
+
+	dir := t.TempDir()
+	if err := os.Mkdir(filepath.Join(dir, "子目录"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Mkdir(filepath.Join(dir, ".hidden"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	rec = do(s, "GET", "/api/ls?path="+url.QueryEscape(dir), nil, true)
+	var got struct {
+		OK bool   `json:"ok"`
+		LS lsResp `json:"ls"`
+	}
+	_ = json.Unmarshal(rec.Body.Bytes(), &got)
+	if !got.OK {
+		t.Fatalf("列目录失败: %s", rec.Body.String())
+	}
+	if len(got.LS.Dirs) != 1 || got.LS.Dirs[0].Name != "子目录" {
+		t.Fatalf("应只列出 1 个非隐藏子目录, got %+v", got.LS.Dirs)
+	}
+	if got.LS.Parent == "" {
+		t.Error("应当给出上级目录")
+	}
+
+	rec = do(s, "GET", "/api/ls?path="+url.QueryEscape(filepath.Join(dir, "不存在")), nil, true)
+	var bad struct {
+		OK bool `json:"ok"`
+	}
+	_ = json.Unmarshal(rec.Body.Bytes(), &bad)
+	if bad.OK {
+		t.Fatal("不存在的目录应当返回 ok=false")
 	}
 }
