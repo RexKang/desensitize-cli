@@ -139,9 +139,12 @@ func (s *Server) preview(req previewReq) (previewResp, error) {
 			break
 		}
 		var err error
-		if files.IsXLSX(f) {
+		switch {
+		case files.IsXLSX(f):
 			_, err = files.ProcessXLSX(f, rs, stats, true)
-		} else {
+		case files.IsDocx(f):
+			_, err = files.ProcessDocx(f, rs, stats, true)
+		default:
 			_, err = files.ProcessText(f, rs, stats)
 		}
 		if err != nil {

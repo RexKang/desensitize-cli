@@ -1,6 +1,6 @@
 // Command desensitize 是测试数据脱敏命令行工具。
 //
-// 输入：.txt / .md / .csv / .xlsx / .xlsm（旧版 .xls 不支持）
+// 输入：.txt / .md / .csv / .json 等文本、.xlsx / .xlsm、.docx（旧版 .xls / .doc 不支持）
 // 流程：扫描 -> 汇总 -> 确认 -> 备份 -> 原地覆盖 -> 可自动打开 HTML 报告（空跑只到汇总）
 //
 // 规则放在 rules.json（首次运行会自动从 rules.sample.json 复制一份）。
@@ -118,9 +118,12 @@ func run(args []string, out io.Writer, in io.Reader) int {
 	for _, f := range found {
 		var pd *files.Pending
 		var err error
-		if files.IsXLSX(f) {
+		switch {
+		case files.IsXLSX(f):
 			pd, err = files.ProcessXLSX(f, rs, stats, opts.dryRun)
-		} else {
+		case files.IsDocx(f):
+			pd, err = files.ProcessDocx(f, rs, stats, opts.dryRun)
+		default:
 			pd, err = files.ProcessText(f, rs, stats)
 		}
 		if err != nil {
@@ -144,7 +147,7 @@ func run(args []string, out io.Writer, in io.Reader) int {
 	stamp := time.Now().Format("2006-01-02 15:04:05")
 	printSummary(p, summarise{
 		opts: opts, rules: rs, stats: stats, records: records, base: base,
-		totalHits: totalHits, scanned: len(found), problems: problems, xls: xlsSkipped,
+		totalHits: totalHits, scanned: len(found), problems: problems, legacy: xlsSkipped,
 	})
 
 	// 报告先落盘：空跑阶段就能打开看，确认前不必写业务文件
@@ -268,6 +271,10 @@ func parseArgs(args []string, p *printer) (options, int) {
   desensitize ./测试数据 --dry-run
   desensitize ./测试数据 --report 明细.html
   desensitize ./hosts --preset network --backup zip --yes
+  desensitize ./材料/变更单.docx --dry-run
+
+能处理的文件：.txt .md .csv .json .log .ini .conf .yaml .yml、.xlsx .xlsm、.docx
+（.xls / .doc 是老二进制格式，只提示跳过）
 
 选项:
 `)
@@ -607,7 +614,7 @@ type summarise struct {
 	totalHits int
 	scanned   int
 	problems  []string
-	xls       []string
+	legacy    []string // 只提示跳过的旧格式：.xls / .doc
 }
 
 func printSummary(p *printer, s summarise) {
@@ -835,8 +842,19 @@ func printSummary(p *printer, s summarise) {
 
 	// 四、提示
 	var tips []string
-	if len(s.xls) > 0 {
-		tips = append(tips, fmt.Sprintf("跳过 %d 个 .xls（旧格式不支持，请先另存为 .xlsx）", len(s.xls)))
+	xlsN, docN := 0, 0
+	for _, f := range s.legacy {
+		if strings.EqualFold(filepath.Ext(f), ".doc") {
+			docN++
+		} else {
+			xlsN++
+		}
+	}
+	if xlsN > 0 {
+		tips = append(tips, fmt.Sprintf("跳过 %d 个 .xls（旧格式不支持，请先另存为 .xlsx）", xlsN))
+	}
+	if docN > 0 {
+		tips = append(tips, fmt.Sprintf("跳过 %d 个 .doc（旧格式不支持，请先另存为 .docx）", docN))
 	}
 	tips = append(tips, s.problems...)
 	if len(tips) > 0 {

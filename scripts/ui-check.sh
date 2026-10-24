@@ -37,6 +37,7 @@ WORK_WIN="$(cd "$WORK" && pwd -W 2>/dev/null || echo "$WORK")"
 mkdir -p "$TARGET/sub"
 printf '变更单 TCK-2026-0001\n联系人 13800138000\n内网 10.1.2.3 主机 host-web01\n' > "$TARGET/工单.txt"
 printf '{"phone":"13900139000"}\n' > "$TARGET/sub/api.json"
+cp "$ROOT/testdata/sample.docx" "$TARGET/变更单.docx" || fail "docx 样例没拷过去"
 
 ( cd "$WORK" && ./desensitize.exe gui --port "$PORT" --no-open --keep-alive > gui.log 2>&1 & )
 for _ in $(seq 1 24); do
@@ -75,6 +76,7 @@ echo "$REPORT" | grep -q '"ok":true' || fail "自检失败: $(echo "$REPORT" | h
 [ "$(field listRendered)" -eq "$(field rulesAfterLoad)" ] || fail "左栏渲染 $(field listRendered) 条 ≠ 规则 $(field rulesAfterLoad) 条"
 [ "$(field hits)" -ge 1 ]            || fail "空跑没命中"
 [ "$(field rows)" -ge 1 ]            || fail "结果表没有行"
+grep -q '变更单.docx' "$WORK/dom.html" || fail "docx 没进预演结果"
 [ "$(field marked)" -ge 1 ]          || fail "上下文没有高亮"
 echo "$REPORT" | grep -q '"banner":"ok"' || fail "banner 状态不是 ok"
 grep -q '工单.txt' "$WORK/dom.html" || fail "结果表没显示文件名"

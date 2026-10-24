@@ -377,7 +377,7 @@ func xlsxRisks(path string) []string {
 }
 
 // Discover 展开目标为待处理文件列表。
-func Discover(targets []string, recursive bool) (out []string, problems []string, xlsSkipped []string) {
+func Discover(targets []string, recursive bool) (out []string, problems []string, legacySkipped []string) {
 	seen := map[string]bool{}
 	add := func(p string) {
 		abs, err := filepath.Abs(p)
@@ -416,10 +416,10 @@ func Discover(targets []string, recursive bool) (out []string, problems []string
 				switch {
 				case skipFile(name):
 					return nil
-				case TextExts[ext], XLSXExts[ext]:
+				case TextExts[ext], XLSXExts[ext], DocxExts[ext]:
 					add(p)
-				case ext == ".xls":
-					xlsSkipped = append(xlsSkipped, p)
+				case ext == ".xls", ext == ".doc":
+					legacySkipped = append(legacySkipped, p)
 				}
 				return nil
 			})
@@ -431,10 +431,10 @@ func Discover(targets []string, recursive bool) (out []string, problems []string
 		}
 		ext := strings.ToLower(filepath.Ext(t))
 		switch {
-		case TextExts[ext], XLSXExts[ext]:
+		case TextExts[ext], XLSXExts[ext], DocxExts[ext]:
 			add(t)
-		case ext == ".xls":
-			xlsSkipped = append(xlsSkipped, t)
+		case ext == ".xls", ext == ".doc":
+			legacySkipped = append(legacySkipped, t)
 		case ext == "":
 			// 明确点名的无扩展名文件按文本处理：hosts、sshd_config 这类配置文件
 			// 正是要脱敏的对象；真是二进制的话，编码探测那步会拒绝并记进提示
@@ -444,7 +444,7 @@ func Discover(targets []string, recursive bool) (out []string, problems []string
 		}
 	}
 	sort.Strings(out)
-	return out, problems, xlsSkipped
+	return out, problems, legacySkipped
 }
 
 func skipFile(name string) bool {

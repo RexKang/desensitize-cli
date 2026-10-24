@@ -2,6 +2,21 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)，格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.6.0] - 2026-10-24
+
+### 新增
+
+- **支持 `.docx`**：只改 `word/` 下承载文字的 XML 部件（正文、页眉页脚、脚注尾注、批注），
+  其余 zip 条目按原顺序原压缩方式搬过去，样式、图片、宏都不动
+- 段落内命中横跨多个 `<w:t>` 也能替换：Word 常把一句话拆进多个 run（改过格式、拼写检查都会切），
+  先用整段文字跑规则，再把结果按字符归属分回各个 run，命中之外的格式（加粗、颜色）不受影响
+- 旧版 `.doc` 与 `.xls` 一样：只在提示里列出并跳过
+
+### 变更
+
+- `Discover` 的第三个返回值由 `xlsSkipped` 改名为 `legacySkipped`，同时收 `.xls` 与 `.doc`
+- 界面空跑、CLI 都走同一套 docx 处理逻辑（`--dry-run` 时只在内存里算，不落任何临时文件）
+
 ## [0.5.3] - 2026-10-24
 
 ### 修复
@@ -176,6 +191,7 @@
 - `tests/verify.py`：45 条断言，覆盖五种规则类型、编码写回、xlsx 数值/日期/公式、嵌套递归、隐藏目录
 - GitHub Actions：ubuntu-latest 3.10 / 3.13、windows-latest 3.12
 
+[0.6.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.6.0
 [0.5.3]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.5.3
 [0.5.2]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.5.2
 [0.5.1]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.5.1

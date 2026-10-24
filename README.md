@@ -2,12 +2,12 @@
 
 [![tests](https://github.com/RexKang/desensitize-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/RexKang/desensitize-cli/actions/workflows/ci.yml)
 
-测试数据脱敏命令行工具：把 `.txt` / `.md` / `.csv` / `.xlsx` 里的手机号、邮箱、身份证、IP、主机名等换成占位内容，**先出预演供人工确认，再备份并原地覆盖**，处理完可以直接在浏览器里逐条核对。
+测试数据脱敏命令行工具：把 `.txt` / `.md` / `.csv` / `.xlsx` / `.docx` 里的手机号、邮箱、身份证、IP、主机名等换成占位内容，**先出预演供人工确认，再备份并原地覆盖**，处理完可以直接在浏览器里逐条核对。
 
 - 单个可执行文件，运行时零依赖（不用装 Python、不用联网）
 - 预演 → 确认 → 备份 → 覆盖 四步走，不确认绝不落盘
 - 五种规则类型，规则外置 `rules.json`，改规则不用重新编译
-- 支持 Excel（保留公式、日期、数值类型）、UTF-8 / UTF-16 / GB18030
+- 支持 Excel（保留公式、日期、数值类型）和 Word（保留样式、图片、run 格式）、UTF-8 / UTF-16 / GB18030
 - 报告导出 HTML / CSV / JSON；生成 HTML 后**自动判断能否打开浏览器**，能开就直接跳过去
 
 ## 安装
@@ -121,7 +121,7 @@ IPv4      9      3     10.1.2.3  →  203.8.9.10
 | 位置 | 含义 |
 |---|---|
 | `×3` | 同一位置、同一内容命中 3 次 |
-| `L14` / `工单!C2` | 文本给行号；xlsx 给 `sheet!单元格` |
+| `L14` / `工单!C2` / `正文 段6` | 文本给行号；xlsx 给 `sheet!单元格`；docx 给 `部件 段序号` |
 | `… 另有 N 处未显示` | 该文件还有命中没展开（`--samples` 控制每文件每规则条数） |
 | `10.` 这类短原文 | 终端只显示匹配到的片段，完整上下文看 `--report` 的上下文列 |
 
@@ -297,7 +297,7 @@ desensitize ./测试数据 --backup zip
 |---|---|
 | 写盘前 | 必须先出预演，交互敲 `y` 才写；非交互且没给 `--yes` 直接拒绝（退出码 3） |
 | 备份 | 默认同目录 `原文件名.<YYYYMMDD-HHMMSS>.bak`；`--backup zip` 改成上层目录的整包；打包失败即中止 |
-| 原子写 | 文本先写临时文件再 `os.Rename`；xlsx 先 `SaveAs` 到临时文件再改名 |
+| 原子写 | 文本/图片类先写同目录临时文件再 `os.Rename`；xlsx 先 `SaveAs` 到临时文件再改名；docx 在内存里重打包后一次写出 |
 | 单文件失败 | 只跳过它并在提示里注明，不影响整批 |
 | 编码 | UTF-8 / UTF-8-BOM / UTF-16-LE / UTF-16-BE / GB18030 原样写回，BOM 与换行符不改 |
 | Excel | 保持原单元格类型：数字格写回数字，文本格写回文本（`0001` 不会被写成 `1`）；公式、日期、布尔不动 |
@@ -311,10 +311,12 @@ mv "工单.xlsx.20260101-101500.bak" "工单.xlsx"
 
 ## 已知限制
 
-- **旧版 `.xls` 不支持**，只在提示里列出并跳过
+- **旧版 `.xls` / `.doc` 不支持**，只在提示里列出并跳过（Word 里另存为 `.docx`）
 - **xlsx 回写会丢图表、图片、数据透视表、数据校验**（`excelize` 限制），处理前会点名哪个文件有这些东西
 - 不计算公式；公式引用的格被替换后，结果要等 Excel 打开才更新
 - 合并单元格只有左上角有值，其余位置读出来是空
+- **docx 只处理文字**：图片、图表、SmartArt 里的字是像素，改不到；修订记录里标记删除的文字不处理；页眉页脚/脚注/尾注/批注都会处理
+- docx 里的 Excel 嵌入对象、宏（`vbaProject.bin`）原样保留，不会脱敏
 - 数值格替换成非数字串（如 `{stars}`）会失去数值类型；替换成纯数字则保留
 - `ip_shift` / `hash` 不可重跑
 - 正则走 RE2：没有反向引用和 lookbehind，写惯 PCRE 的规则要改
@@ -327,7 +329,7 @@ desensitize-cli/
 ├── internal/
 │   ├── rules/                规则模型、匹配、模板、ip_shift、hash
 │   ├── mask/                 引擎：多规则合并成一次改写
-│   ├── files/                编码、文本/xlsx 处理、目录发现、统计
+│   ├── files/                编码、文本/xlsx/docx 处理、目录发现、统计
 │   ├── gui/                  本机界面：server.go（token/心跳）+ api.go + browse.go + page.html
 │   ├── presets/              内置案例库（presets.json + 校验）
 │   ├── report/               HTML / CSV / JSON 报告
@@ -340,7 +342,7 @@ desensitize-cli/
 ```
 
 ```bash
-go test ./...        # 6 个包的测试：规则、引擎、编码、xlsx、发现、CLI 退出码、GUI 接口
+go test ./...        # 6 个包的测试：规则、引擎、编码、xlsx、docx、发现、CLI 退出码、GUI 接口
 go vet ./...
 gofmt -l .           # 应无输出
 bash scripts/ui-check.sh   # 改过界面就跑这个（见下）
