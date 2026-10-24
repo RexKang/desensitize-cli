@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>desensitize gui</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font:13.5px/1.6 system-ui,"Microsoft YaHei",sans-serif;color:#1f2328;background:#f6f8fa}
+.top{background:#fff;border-bottom:1px solid #e3e8ee;padding:9px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
+.top h1{font-size:15px;margin:0;font-weight:700}
+.top .sub{color:#6e7781;font-size:11.5px}
+.top .sp{flex:1}
+.btn{border:1px solid #d0d7de;background:#fff;border-radius:6px;padding:4px 9px;font:inherit;font-size:12px;cursor:pointer;color:#24292f;white-space:nowrap}
+.btn:hover{background:#f6f8fa}
+.btn.primary{background:#1f883d;border-color:#1f883d;color:#fff;font-weight:600}
+.btn.primary:hover{background:#1a7f37}
+.btn.blue{background:#0969da;border-color:#0969da;color:#fff;font-weight:600}
+.btn.mini{padding:1px 6px;font-size:11px}
+.btn.ghost{border-color:transparent;color:#0969da}
+.badge{display:inline-block;font-size:10.5px;padding:0 5px;border-radius:9px;background:#eef2f6;color:#57606a;line-height:16px}
+.badge.on{background:#dafbe1;color:#1a7f37}
+.badge.off{background:#f6f8fa;color:#8b949e}
+.badge.low{background:#dafbe1;color:#1a7f37}
+.badge.mid{background:#fff8c5;color:#9a6700}
+.badge.high{background:#ffebe9;color:#cf222e}
+.panel{background:#fff;border:1px solid #e3e8ee;border-radius:8px;overflow:hidden}
+.ph{font-size:11px;letter-spacing:.04em;color:#8b949e;padding:8px 10px 4px;display:flex;align-items:center;gap:6px}
+.ph .sp{flex:1}
+.g{display:grid;grid-template-columns:236px minmax(0,1fr) 430px;gap:10px;padding:10px 14px 30px;align-items:start}
+.ritem{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;cursor:pointer;border-left:2px solid transparent}
+.ritem:hover{background:#f6f8fa}
+.ritem.on{background:#e7f0fb;border-left-color:#0969da}
+.ritem .nm{flex:1;font-size:12.2px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ritem .n{font-size:10px;color:#8b949e}
+.ptabs{display:flex;border-bottom:1px solid #eef1f4}
+.ptabs div{flex:1;text-align:center;padding:5px 0;font-size:11.8px;color:#57606a;cursor:pointer;border-bottom:2px solid transparent}
+.ptabs div.on{color:#0969da;font-weight:600;border-bottom-color:#0969da}
+.case{display:flex;align-items:center;gap:5px;padding:3px 6px;border-radius:6px;cursor:pointer}
+.case:hover{background:#f6f8fa}
+.case .nm{flex:1;font-size:11.8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.body{padding:2px 10px 10px}
+label.f{display:block;font-size:11.5px;color:#57606a;margin:7px 0 2px}
+input[type=text],select,textarea{width:100%;padding:4px 7px;border:1px solid #d0d7de;border-radius:6px;font:inherit;font-size:12px}
+textarea{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;min-height:44px;resize:vertical}
+.row{display:flex;gap:6px;align-items:center}
+.hint{font-size:11px;color:#8b949e}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sw{width:26px;height:15px;border-radius:8px;background:#d0d7de;position:relative;display:inline-block;vertical-align:middle;cursor:pointer;flex:none}
+.sw.on{background:#2da44e}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:#fff;transition:.15s}
+.sw.on::after{left:13px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:3px 7px;border-bottom:1px solid #eef1f4;font-size:11.8px;vertical-align:top}
+th{color:#57606a;font-size:10.8px;font-weight:600;background:#fbfcfd}
+mark{background:#ffd8d3;color:#82071e;font-weight:600;padding:0 1px;border-radius:2px}
+pre.sample{margin:5px 0 0;font-family:ui-monospace,Consolas,monospace;font-size:11px;color:#3d4451;white-space:pre-wrap;line-height:1.5;background:#f6f8fa;border-radius:6px;padding:6px 8px}
+#banner{display:none;margin:8px 14px 0;padding:6px 10px;border-radius:6px;font-size:12px}
+#banner.err{display:block;background:#ffebe9;border:1px solid #f5c2c0;color:#cf222e}
+#banner.ok{display:block;background:#dafbe1;border:1px solid #aee9c1;color:#1a7f37}
+#banner.warn{display:block;background:#fff8c5;border:1px solid #eed888;color:#9a6700}
+</style></head><body>
+
+<div class="top">
+  <h1>desensitize gui</h1>
+  <span class="sub" id="sub">本机界面 · 只读预演</span>
+  <span class="sp"></span>
+  <span class="badge" id="rulePath">rules.json</span>
+  <button class="btn" id="saveBtn">保存规则库</button>
+  <button class="btn ghost" id="quitBtn">退出</button>
+</div>
+<div id="banner"></div>
+
+<div class="g">
+  <div class="panel">
+    <div class="ptabs"><div class="on" id="tabRules">规则库 0</div><div id="tabCases">案例 0</div></div>
+    <div id="listRules" style="padding:2px 5px 6px;max-height:70vh;overflow:auto"></div>
+    <div id="listCases" style="padding:2px 5px 6px;max-height:70vh;overflow:auto;display:none"></div>
+    <div style="padding:2px 9px 9px" class="row">
+      <button class="btn" id="addBtn">+ 新增规则</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ph"><span id="editTitle">编辑</span><span class="sp"></span><span class="hint" id="editHint"></span></div>
+    <div class="body" id="editor"></div>
+  </div>
+
+  <div class="panel">
+    <div class="ph">空跑（只读）<span class="sp"></span><span class="hint" id="prevHint"></span></div>
+    <div class="body">
+      <label class="f">目标路径（文件或目录）</label>
+      <input type="text" id="target" placeholder="D:\测试数据 或 ./sample.txt">
+      <div class="row" style="margin-top:6px">
+        <label class="row" style="gap:5px"><span class="sw on" id="recSw"></span><span style="font-size:11.8px">递归子目录</span></label>
+        <span class="sp" style="flex:1"></span>
+        <button class="btn blue" id="runBtn">空跑</button>
+      </div>
+      <div class="hint" style="margin-top:6px">空跑只算不写：不备份、不改文件、xlsx 连临时文件都不落。</div>
+      <div id="summary" style="margin-top:8px"></div>
+      <div id="rowsWrap" style="max-height:52vh;overflow:auto;display:none;margin-top:6px"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+let state = {rules: [], presets: [], rulesPath: '', rulesMtime: 0, version: ''};
+let sel = 0, tab = 'rules';
+
+function banner(kind, msg, action) {
+  const b = $('#banner');
+  b.className = kind;
+  b.innerHTML = '';
+  b.append(document.createTextNode(msg + ' '));
+  if (action) {
+    const btn = document.createElement('button');
+    btn.className = 'btn mini';
+    btn.textContent = action.label;
+    btn.onclick = action.fn;
+    b.append(btn);
+  }
+  if (kind === 'ok') setTimeout(() => { b.className = ''; }, 4000);
+}
+const token = new URLSearchParams(location.search).get('t') || '';
+async function api(path, body) {
+  const opt = {headers: {'X-Token': token}};
+  if (body !== undefined) {
+    opt.method = 'POST';
+    opt.headers['Content-Type'] = 'application/json';
+    opt.body = JSON.stringify(body);
+  }
+  const r = await fetch(path, opt);
+  return await r.json();
+}
+
+function renderList() {
+  const box = $('#listRules');
+  box.innerHTML = '';
+  state.rules.forEach((r, i) => {
+    const d = document.createElement('div');
+    d.className = 'ritem' + (i === sel && tab === 'rules' ? ' on' : '');
+    const sw = document.createElement('span');
+    sw.className = 'sw' + (r.enabled !== false ? ' on' : '');
+    sw.onclick = e => { e.stopPropagation(); r.enabled = (r.enabled === false); renderList(); };
+    const nm = document.createElement('span');
+    nm.className = 'nm';
+    nm.textContent = r.desc || r.id || '(未命名)';
+    const n = document.createElement('span');
+    n.className = 'n';
+    n.textContent = r.type || '';
+    d.append(sw, nm, n);
+    d.onclick = () => { tab = 'rules'; sel = i; renderAll(); };
+    box.append(d);
+  });
+  $('#tabRules').textContent = '规则库 ' + state.rules.length;
+
+  const cb = $('#listCases');
+  cb.innerHTML = '';
+  state.presets.forEach(p => {
+    const d = document.createElement('div');
+    d.className = 'case';
+    const nm = document.createElement('span');
+    nm.className = 'nm';
+    nm.textContent = p.name;
+    const b = document.createElement('span');
+    b.className = 'badge ' + (p.risk === '高' ? 'high' : p.risk === '中' ? 'mid' : 'low');
+    b.textContent = p.risk;
+    d.append(nm, b);
+    d.onclick = () => loadPreset(p);
+    cb.append(d);
+  });
+  $('#tabCases').textContent = '案例 ' + state.presets.length;
+}
+
+function field(label, id, value, opts) {
+  const w = document.createElement('div');
+  const l = document.createElement('label');
+  l.className = 'f';
+  l.textContent = label;
+  const inp = document.createElement('input');
+  inp.type = 'text';
+  inp.value = value === undefined || value === null ? '' : value;
+  inp.oninput = () => { opts.set(inp.value); };
+  w.append(l, inp);
+  return w;
+}
+
+function renderEditor() {
+  const box = $('#editor');
+  box.innerHTML = '';
+  const r = state.rules[sel];
+  if (!r) {
+    $('#editTitle').textContent = '编辑';
+    box.innerHTML = '<div class="hint">左边选一条规则，或者点「+ 新增规则」。</div>';
+    return;
+  }
+  $('#editTitle').textContent = '编辑：' + (r.desc || r.id || '(未命名)');
+  $('#editHint').textContent = r.enabled === false ? '已停用' : '启用中';
+
+  const typeSel = document.createElement('select');
+  ['regex', 'literal', 'digits', 'ip_shift', 'hash'].forEach(t => {
+    const o = document.createElement('option');
+    o.value = t; o.textContent = t; o.selected = (r.type || 'regex') === t;
+    typeSel.append(o);
+  });
+  typeSel.onchange = () => { r.type = typeSel.value; renderAll(); };
+  const tw = document.createElement('div');
+  const tl = document.createElement('label');
+  tl.className = 'f'; tl.textContent = '类型';
+  tw.append(tl, typeSel);
+
+  const idW = field('id', 'id', r.id, {set: v => r.id = v.trim()});
+  const descW = field('显示名', 'desc', r.desc, {set: v => r.desc = v});
+  const two = document.createElement('div');
+  two.className = 'split';
+  two.append(idW, descW);
+  box.append(tw, two);
+
+  if (r.type === 'literal') {
+    box.append(field('find（要替换的字面串）', 'find', r.find, {set: v => r.find = v}));
+  } else {
+    box.append(field('pattern（RE2，无 lookbehind）', 'pattern', r.pattern, {set: v => r.pattern = v}));
+  }
+  box.append(field('replace（{stars} {keep:N} {head:N} {len} {gN}，空串=删除）', 'replace', r.replace, {set: v => r.replace = v}));
+
+  if (r.type === 'digits') {
+    box.append(field('length（数字位数）', 'length', r.length, {set: v => r.length = parseInt(v) || 0}));
+  }
+  if (r.type === 'ip_shift') {
+    box.append(field('first_octet（首段固定，可留空）', 'first_octet', r.first_octet, {set: v => r.first_octet = v === '' ? null : parseInt(v)}));
+    box.append(field('offset（其余段统一偏移）', 'offset', r.offset, {set: v => r.offset = v === '' ? null : parseInt(v)}));
+    box.append(field('source_cidrs（逗号分隔，只动这些网段）', 'cidrs', (r.source_cidrs || []).join(','), {
+      set: v => r.source_cidrs = v.split(',').map(s => s.trim()).filter(Boolean)
+    }));
+  }
+  if (r.type === 'hash') {
+    box.append(field('keep_tail（保留尾部几位）', 'keep_tail', r.keep_tail, {set: v => r.keep_tail = parseInt(v) || 0}));
+    box.append(field('salt（隔离项目用，可留空）', 'salt', r.salt, {set: v => r.salt = v}));
+  }
+
+  const flags = document.createElement('div');
+  flags.className = 'row';
+  flags.style.cssText = 'margin-top:9px;gap:14px;flex-wrap:wrap';
+  const mk = (label, get, set) => {
+    const lab = document.createElement('label');
+    lab.className = 'row'; lab.style.gap = '4px';
+    const sw = document.createElement('span');
+    sw.className = 'sw' + (get() ? ' on' : '');
+    sw.onclick = () => { set(!get()); renderAll(); };
+    const sp = document.createElement('span');
+    sp.style.fontSize = '11.8px';
+    sp.textContent = label;
+    lab.append(sw, sp);
+    return lab;
+  };
+  if (r.type === 'literal') {
+    flags.append(mk('word 边界（前面不能是字母数字）', () => r.boundary === 'word', v => r.boundary = v ? 'word' : 'none'));
+  } else {
+    flags.append(mk('digit_boundary（不切开长数字串）', () => !!r.digit_boundary, v => r.digit_boundary = v));
+  }
+  flags.append(mk('ignore_case', () => !!r.ignore_case, v => r.ignore_case = v));
+  if (r.type === 'digits') flags.append(mk('skip_valid_date', () => !!r.skip_valid_date, v => r.skip_valid_date = v));
+  box.append(flags);
+
+  const acts = document.createElement('div');
+  acts.className = 'row';
+  acts.style.marginTop = '10px';
+  const del = document.createElement('button');
+  del.className = 'btn'; del.textContent = '删除这条';
+  del.style.cssText = 'color:#cf222e;border-color:#f0c8c8';
+  del.onclick = () => { state.rules.splice(sel, 1); sel = Math.max(0, sel - 1); renderAll(); };
+  acts.append(del);
+  box.append(acts);
+}
+
+function renderAll() { renderList(); renderEditor(); }
+
+async function loadPreset(p) {
+  const list = p.rules || [];
+  if (state.rules.length && !confirm('用案例「' + p.name + '」的 ' + list.length + ' 条规则替换当前规则库？\n（还没保存，替换后可以再点保存；也可以先备份 rules.json）')) return;
+  state.rules = JSON.parse(JSON.stringify(list));
+  sel = 0;
+  tab = 'rules';
+  renderAll();
+  banner('warn', '已载入案例「' + p.name + '」（' + list.length + ' 条，' + p.risk + '风险）。' + p.note);
+}
+
+async function runPreview() {
+  const target = $('#target').value.trim();
+  if (!target) { banner('err', '先填目标路径'); return; }
+  $('#runBtn').disabled = true;
+  $('#prevHint').textContent = '跑着…';
+  try {
+    const res = await api('/api/preview', {
+      target, rules: state.rules, recursive: $('#recSw').classList.contains('on'), limit: 200
+    });
+    if (!res.ok) { banner('err', res.error || '预演失败'); $('#prevHint').textContent = ''; return; }
+    renderPreview(res.result);
+    banner('ok', '空跑完成：' + res.result.files + ' 个文件 / ' + res.result.hits + ' 处命中，未写盘。');
+  } catch (e) {
+    banner('err', '请求失败: ' + e);
+  } finally {
+    $('#runBtn').disabled = false;
+  }
+}
+
+function renderPreview(r) {
+  $('#prevHint').textContent = r.elapsedMs + ' ms';
+  const sum = $('#summary');
+  sum.innerHTML = '';
+  const line = document.createElement('div');
+  line.className = 'hint';
+  line.textContent = r.files + ' 个文件 · ' + r.hits + ' 处 · ' + r.rows.length + ' 行明细'
+    + (r.truncated ? '（已截断，先处理更小的目录）' : '');
+  sum.append(line);
+  (r.problems || []).slice(0, 5).forEach(p => {
+    const d = document.createElement('div');
+    d.className = 'hint';
+    d.style.color = '#9a6700';
+    d.textContent = '· ' + p;
+    sum.append(d);
+  });
+
+  const wrap = $('#rowsWrap');
+  wrap.style.display = 'block';
+  wrap.innerHTML = '';
+  const t = document.createElement('table');
+  t.innerHTML = '<thead><tr><th style="width:96px">位置</th><th style="width:56px">规则</th><th>原文 → 替换后</th><th>上下文</th></tr></thead>';
+  const tb = document.createElement('tbody');
+  r.rows.forEach(x => {
+    const tr = document.createElement('tr');
+    const c1 = document.createElement('td'); c1.className = 'mono'; c1.style.fontSize = '11px'; c1.textContent = x.loc;
+    const c2 = document.createElement('td'); c2.textContent = x.rule;
+    const c3 = document.createElement('td'); c3.style.fontSize = '11px';
+    c3.innerHTML = '<span style="color:#cf222e"></span> → <b style="color:#1a7f37"></b>';
+    c3.children[0].textContent = x.before || '（空）';
+    c3.children[2].textContent = x.after || '（空）';
+    const c4 = document.createElement('td'); c4.style.cssText = 'font-size:11px;color:#3d4451';
+    c4.innerHTML = (x.ctx || '').replace(/⟦/g, '<mark>').replace(/⟧/g, '</mark>');
+    tr.append(c1, c2, c3, c4);
+    tb.append(tr);
+  });
+  t.append(tb);
+  wrap.append(t);
+}
+
+async function saveRules() {
+  const res = await api('/api/rules', {rules: state.rules, baseMtime: state.rulesMtime});
+  if (res.ok) {
+    state.rulesMtime = res.mtime;
+    banner('ok', '已保存到 ' + state.rulesPath + (res.backup ? '（旧文件备份为 ' + res.backup.split(/[\\/]/).pop() + '）' : ''));
+  } else if (res.conflict) {
+    banner('warn', res.error, {label: '重新加载', fn: () => location.reload()});
+  } else {
+    banner('err', res.error || '保存失败');
+  }
+}
+
+async function boot() {
+  const res = await api('/api/state');
+  if (!res.ok) { banner('err', res.error || '读取状态失败'); return; }
+  const s = res.state;
+  state = {rules: s.rules || [], presets: s.presets || [], rulesPath: s.rulesPath, rulesMtime: s.rulesMtime, version: s.version};
+  $('#rulePath').textContent = (s.rulesPath || 'rules.json').split(/[\\/]/).pop();
+  $('#sub').textContent = '本机界面 · ' + (s.version || '');
+  sel = 0;
+  renderAll();
+}
+
+$('#tabRules').onclick = () => { tab = 'rules'; $('#tabRules').classList.add('on'); $('#tabCases').classList.remove('on'); $('#listRules').style.display = ''; $('#listCases').style.display = 'none'; };
+$('#tabCases').onclick = () => { tab = 'cases'; $('#tabCases').classList.add('on'); $('#tabRules').classList.remove('on'); $('#listCases').style.display = ''; $('#listRules').style.display = 'none'; };
+$('#addBtn').onclick = () => {
+  state.rules.push({id: 'rule' + (state.rules.length + 1), desc: '新规则', type: 'regex', pattern: '', replace: '{stars}', enabled: true});
+  sel = state.rules.length - 1;
+  tab = 'rules';
+  $('#tabRules').click();
+  renderAll();
+};
+$('#recSw').onclick = () => $('#recSw').classList.toggle('on');
+$('#runBtn').onclick = runPreview;
+$('#saveBtn').onclick = saveRules;
+$('#quitBtn').onclick = async () => { await api('/api/quit', {}); document.body.innerHTML = '<p style="padding:24px;font:14px system-ui">已退出，可以关掉这个标签页。</p>'; };
+
+// 心跳：页面关掉 12 秒后服务自己退出
+setInterval(() => api('/api/ping', {}).catch(() => {}), 4000);
+
+boot();
+</script>
+</body></html>

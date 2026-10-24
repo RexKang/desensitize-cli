@@ -19,6 +19,8 @@ rules.json
 out/
 *.html
 *.csv
+# go:embed 的页面不是产物，必须入库
+!internal/gui/page.html
 
 # 自测夹具是生成的
 python/tests/fixtures/
