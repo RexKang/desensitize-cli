@@ -253,6 +253,7 @@ desensitize/
 │   └── rules.test.json   自测专用固定规则
 ├── .gitignore
 ├── LICENSE
+├── CHANGELOG.md
 └── README.md
 ```
 
