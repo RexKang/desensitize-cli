@@ -37,10 +37,11 @@ type Server struct {
 	ln    net.Listener
 	srv   *http.Server
 
-	lastPing atomic.Int64 // 毫秒时间戳
-	once     sync.Once
-	done     chan struct{}
-	serveErr chan error
+	lastPing  atomic.Int64 // 毫秒时间戳
+	rulesPath atomic.Value // string：当前规则文件路径（另存为会换掉它）
+	once      sync.Once
+	done      chan struct{}
+	serveErr  chan error
 }
 
 // New 建服务但不监听；端口在 Start 里才确定。
@@ -55,11 +56,13 @@ func New(opts Options) (*Server, error) {
 	}
 	s := &Server{opts: opts, token: token, done: make(chan struct{}), serveErr: make(chan error, 1)}
 	s.lastPing.Store(time.Now().UnixMilli())
+	s.rulesPath.Store(opts.RulesPath)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.handlePage)
 	mux.HandleFunc("/api/state", s.auth(s.handleState))
 	mux.HandleFunc("/api/preview", s.auth(s.handlePreview))
+	mux.HandleFunc("/api/run", s.auth(s.handleRun))
 	mux.HandleFunc("/api/rules", s.auth(s.handleRules))
 	mux.HandleFunc("/api/ping", s.auth(s.handlePing))
 	mux.HandleFunc("/api/quit", s.auth(s.handleQuit))
@@ -71,6 +74,17 @@ func New(opts Options) (*Server, error) {
 	}
 	return s, nil
 }
+
+// RulesPath 返回当前规则文件路径。
+func (s *Server) RulesPath() string {
+	if v, ok := s.rulesPath.Load().(string); ok && v != "" {
+		return v
+	}
+	return s.opts.RulesPath
+}
+
+// SetRulesPath 另存为之后切换默认保存位置。
+func (s *Server) SetRulesPath(p string) { s.rulesPath.Store(p) }
 
 // Start 监听 127.0.0.1 并起后台服务与看门狗。
 func (s *Server) Start() error {

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/RexKang/desensitize-cli/internal/files"
@@ -38,11 +39,11 @@ type presetBrief struct {
 }
 
 func (s *Server) handleState(w http.ResponseWriter, r *http.Request) {
-	resp := stateResp{Version: s.opts.Version, RulesPath: s.opts.RulesPath}
+	resp := stateResp{Version: s.opts.Version, RulesPath: s.RulesPath()}
 
-	data, err := os.ReadFile(s.opts.RulesPath)
+	data, err := os.ReadFile(s.RulesPath())
 	if err == nil {
-		if info, e := os.Stat(s.opts.RulesPath); e == nil {
+		if info, e := os.Stat(s.RulesPath()); e == nil {
 			resp.RulesMtime = info.ModTime().UnixNano()
 		}
 		rs, _, e := rules.Parse(data)
@@ -169,12 +170,13 @@ func (s *Server) preview(req previewReq) (previewResp, error) {
 type saveRulesReq struct {
 	Rules     json.RawMessage `json:"rules"`
 	BaseMtime int64           `json:"baseMtime"` // 页面加载/上次保存时拿到的 mtime
+	Path      string          `json:"path"`      // 另存为：不给就存回当前规则文件
 }
 
 func (s *Server) handleRules(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		data, err := os.ReadFile(s.opts.RulesPath)
+		data, err := os.ReadFile(s.RulesPath())
 		if err != nil {
 			writeJSON(w, 200, map[string]any{"ok": false, "error": "读不到规则文件: " + err.Error()})
 			return
@@ -203,12 +205,12 @@ func (s *Server) handleRules(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, 200, map[string]any{"ok": false, "error": err.Error()})
 			return
 		}
-		info, _ := os.Stat(s.opts.RulesPath)
+		info, _ := os.Stat(s.RulesPath())
 		mt := int64(0)
 		if info != nil {
 			mt = info.ModTime().UnixNano()
 		}
-		writeJSON(w, 200, map[string]any{"ok": true, "backup": backup, "mtime": mt})
+		writeJSON(w, 200, map[string]any{"ok": true, "backup": backup, "mtime": mt, "path": s.RulesPath()})
 	default:
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -219,8 +221,31 @@ type conflictError struct{ mtime int64 }
 func (e *conflictError) Error() string { return "rules.json 已被外部修改" }
 
 // saveRules 先留备份再落盘；外部改过就报冲突，不盲覆盖。
+// req.Path 非空时是「另存为」：写到指定位置，并把后续保存也切过去。
 func (s *Server) saveRules(req saveRulesReq) (string, error) {
-	path := s.opts.RulesPath
+	path := s.RulesPath()
+	saveAs := false
+	if req.Path != "" {
+		abs, err := filepath.Abs(req.Path)
+		if err != nil {
+			return "", fmt.Errorf("路径不对: %w", err)
+		}
+		if strings.EqualFold(filepath.Ext(abs), "") {
+			abs += ".json"
+		}
+		if strings.ToLower(filepath.Ext(abs)) != ".json" {
+			return "", fmt.Errorf("规则文件要用 .json 结尾: %s", filepath.Base(abs))
+		}
+		if info, err := os.Stat(abs); err == nil && info.IsDir() {
+			return "", fmt.Errorf("%s 是个目录，不是文件", abs)
+		}
+		if _, err := os.Stat(filepath.Dir(abs)); err != nil {
+			return "", fmt.Errorf("目录不存在: %s", filepath.Dir(abs))
+		}
+		path = abs
+		saveAs = true
+		req.BaseMtime = 0 // 另存为不参与冲突检测
+	}
 	backup := ""
 
 	if info, err := os.Stat(path); err == nil {
@@ -256,6 +281,9 @@ func (s *Server) saveRules(req saveRulesReq) (string, error) {
 	if err := os.Rename(tmp, path); err != nil {
 		_ = os.Remove(tmp)
 		return "", err
+	}
+	if saveAs {
+		s.SetRulesPath(path)
 	}
 	return backup, nil
 }

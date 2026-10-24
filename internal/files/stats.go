@@ -12,6 +12,7 @@ import (
 type Detail struct {
 	File   string
 	RuleID string
+	Stage  string // 多策略时的策略名
 	Label  string
 	Loc    string
 	Before string
@@ -30,7 +31,12 @@ type Stats struct {
 	RuleHits  map[string]int
 	RuleFiles map[string]int
 	Noop      map[string]int
+
+	stage string // 当前策略名，多条策略时用来区分命中来源
 }
+
+// SetStage 标记接下来这批命中属于哪条策略（单条策略时传空）。
+func (s *Stats) SetStage(name string) { s.stage = name }
 
 // NewStats 建一个计数器。
 func NewStats() *Stats {
@@ -70,10 +76,15 @@ func (s *Stats) Add(file string, h mask.Hit, text string, loc LocatorFunc) {
 	if len(s.Order) >= s.detailCap {
 		return
 	}
+	label := h.Rule.Label()
+	if s.stage != "" {
+		label = s.stage + " / " + label
+	}
 	d := &Detail{
 		File:   file,
 		RuleID: h.Rule.ID,
-		Label:  h.Rule.Label(),
+		Stage:  s.stage,
+		Label:  label,
 		Loc:    position,
 		Before: h.Original,
 		After:  h.After,

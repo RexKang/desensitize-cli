@@ -255,3 +255,18 @@ func containsAll(s string, subs ...string) bool {
 	}
 	return true
 }
+
+// mustRules 从 JSON 字符串造规则，测试用。
+func mustRules(t *testing.T, js string) []*rules.Rule {
+	t.Helper()
+	dir := t.TempDir()
+	p := filepath.Join(dir, "r.json")
+	if err := os.WriteFile(p, []byte(js), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	rs, _, err := rules.Load(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return rs
+}

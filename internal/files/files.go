@@ -134,8 +134,13 @@ func encode(text string, enc encoding.Encoding, bom []byte) ([]byte, error) {
 	return out, nil
 }
 
-// ProcessText 处理文本文件。
+// ProcessText 处理文本文件（单组规则）。
 func ProcessText(path string, rs []*rules.Rule, stats *Stats) (*Pending, error) {
+	return ProcessTextPasses(path, SinglePass(rs), stats)
+}
+
+// ProcessTextPasses 按顺序套用多条策略处理文本文件。
+func ProcessTextPasses(path string, passes []Pass, stats *Stats) (*Pending, error) {
 	raw, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -149,26 +154,44 @@ func ProcessText(path string, rs []*rules.Rule, stats *Stats) (*Pending, error) 
 		return nil, fmt.Errorf("解码失败（%s）: %w", encName, err)
 	}
 
-	newText, hits := mask.Apply(text, rs)
-	if len(hits) == 0 {
+	cur := text
+	effective := 0
+	for i, ps := range passes {
+		stats.SetStage(stageLabel(passes, i))
+		next, hits := mask.Apply(cur, ps.Rules)
+		if len(hits) > 0 {
+			lineStarts := LineStarts(cur)
+			for _, h := range hits {
+				if h.After != h.Original {
+					effective++
+				}
+				stats.Add(path, h, cur, LocatorFunc(func(off int) string {
+					return "L" + strconv.Itoa(LineOf(lineStarts, off))
+				}))
+			}
+		}
+		cur = next
+	}
+	if effective == 0 {
 		return nil, nil
 	}
-	effective := 0
-	lineStarts := LineStarts(text)
-	for _, h := range hits {
-		if h.After != h.Original {
-			effective++
-		}
-		stats.Add(path, h, text, LocatorFunc(func(off int) string {
-			return "L" + strconv.Itoa(LineOf(lineStarts, off))
-		}))
-	}
 
-	data, err := encode(newText, enc, bom)
+	data, err := encode(cur, enc, bom)
 	if err != nil {
 		return nil, fmt.Errorf("按 %s 编码回去失败: %w", encName, err)
 	}
 	return &Pending{Path: path, Data: data, Hits: effective}, nil
+}
+
+// stageLabel 只有多条策略时才在报告里标出策略名。
+func stageLabel(passes []Pass, i int) string {
+	if len(passes) < 2 {
+		return ""
+	}
+	if passes[i].Name != "" {
+		return passes[i].Name
+	}
+	return "策略" + strconv.Itoa(i+1)
 }
 
 // ErrUnknownEncoding 表示无法识别文件编码。
@@ -190,8 +213,13 @@ func LineOf(starts []int, off int) int {
 	return sort.SearchInts(starts, off+1)
 }
 
-// ProcessXLSX 处理 xlsx/xlsm。dry 为真时只算不落盘（界面预演用）。
+// ProcessXLSX 处理 xlsx/xlsm（单组规则）。dry 为真时只算不落盘（界面预演用）。
 func ProcessXLSX(path string, rs []*rules.Rule, stats *Stats, dry bool) (*Pending, error) {
+	return ProcessXLSXPasses(path, SinglePass(rs), stats, dry)
+}
+
+// ProcessXLSXPasses 按顺序套用多条策略处理 Excel。
+func ProcessXLSXPasses(path string, passes []Pass, stats *Stats, dry bool) (*Pending, error) {
 	f, err := excelize.OpenFile(path)
 	if err != nil {
 		return nil, err
@@ -232,18 +260,25 @@ func ProcessXLSX(path string, rs []*rules.Rule, stats *Stats, dry bool) (*Pendin
 					skippedBool++
 					continue
 				}
-				newVal, cellHits := mask.Apply(raw, rs)
-				if len(cellHits) == 0 {
-					continue
-				}
-				loc := sheet + "!" + cell
-				for _, h := range cellHits {
-					stats.Add(path, h, raw, LocatorFunc(func(int) string { return loc }))
-				}
-				for _, h := range cellHits {
-					if h.After != h.Original {
-						hits++
+				newVal := raw
+				var all []mask.Hit
+				for pi, ps := range passes {
+					stats.SetStage(stageLabel(passes, pi))
+					next, cellHits := mask.Apply(newVal, ps.Rules)
+					if len(cellHits) > 0 {
+						loc := sheet + "!" + cell
+						for _, h := range cellHits {
+							stats.Add(path, h, newVal, LocatorFunc(func(int) string { return loc }))
+							if h.After != h.Original {
+								hits++
+							}
+						}
+						all = append(all, cellHits...)
 					}
+					newVal = next
+				}
+				if len(all) == 0 {
+					continue
 				}
 				if wasNumeric && isAllDigits(newVal) && !hasLeadingZero(newVal) {
 					if n, err := strconv.ParseInt(newVal, 10, 64); err == nil {

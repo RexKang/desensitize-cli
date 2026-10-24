@@ -82,16 +82,32 @@ input.n{width:60px;padding:2px 5px;font-size:11.5px}
 .pitem:hover{background:#eef2f6}
 .pitem .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pfoot{padding:8px 12px;border-top:1px solid #eef1f4;display:flex;gap:6px;align-items:center;background:#fbfcfd}
+.qitem{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;background:#f6f8fa;margin-bottom:4px}
+.qitem .n{font-size:11.5px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qitem .m{font-size:10.5px;color:#8b949e}
+.qitem .x{cursor:pointer;color:#8b949e;padding:0 2px;font-size:13px;line-height:1}
+.qitem .x:hover{color:#cf222e}
+.qitem .mv{cursor:pointer;color:#8b949e;font-size:11px;padding:0 1px}
+.qitem .mv:hover{color:#0969da}
+.kv{display:flex;gap:8px;font-size:12px;padding:2px 0}
+.kv .k{color:#8b949e;width:52px;flex:none}
+.kv .v{flex:1;word-break:break-all}
+.slist{max-height:38vh;overflow:auto;border:1px solid #eef1f4;border-radius:6px;padding:6px 8px;margin-top:6px}
+.sblock{margin-bottom:8px}
+.sblock .h{font-size:12px;font-weight:700;margin-bottom:2px}
+.sblock .r{font-size:11.5px;color:#3d4451;padding-left:10px}
+.sblock .off{color:#8b949e}
 </style></head><body>
 
 <div class="top">
   <h1>desensitize gui</h1>
-  <span class="sub" id="sub">本机界面 · 只读预演</span>
+  <span class="sub" id="sub">本机界面 · 空跑 / 执行</span>
   <span class="sp"></span>
   <span class="badge" id="optSummary" title="点右边「设置」修改">递归 · 上限 200</span>
   <span class="badge" id="rulePath">rules.json</span>
   <button class="btn" id="gearBtn" title="运行选项">⚙ 设置</button>
   <button class="btn" id="saveBtn">保存规则库</button>
+  <button class="btn" id="saveAsBtn">另存为…</button>
   <button class="btn ghost" id="quitBtn">退出</button>
 </div>
 <div id="banner"></div>
@@ -112,7 +128,19 @@ input.n{width:60px;padding:2px 5px;font-size:11.5px}
   </div>
 
   <div class="panel">
-    <div class="ph">空跑（只读）<span class="sp"></span><span class="hint" id="prevHint"></span></div>
+    <div class="ph">待执行队列<span class="sp"></span><span class="hint" id="queueHint"></span></div>
+    <div class="body" style="padding-top:6px">
+      <div id="queueList"></div>
+      <div class="row" style="margin-top:2px">
+        <button class="btn" id="enqueueBtn" style="flex:1">+ 加入队列</button>
+        <button class="btn" id="clearQueueBtn">清空</button>
+      </div>
+      <div class="hint" style="margin-top:4px">顺序执行：按队列顺序作用在同一份内容上，最后只写一次盘。</div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:10px">
+    <div class="ph">目标与执行<span class="sp"></span><span class="hint" id="prevHint"></span></div>
     <div class="body">
       <label class="f">目标路径（目录或单个文件）</label>
       <div class="row">
@@ -121,11 +149,12 @@ input.n{width:60px;padding:2px 5px;font-size:11.5px}
       </div>
       <div class="row" style="margin-top:6px">
         <button class="btn blue" id="runBtn" style="flex:1">空跑</button>
-        <button class="btn" id="clearBtn">清空</button>
+        <button class="btn" id="execBtn" style="flex:1;background:#1f883d;border-color:#1f883d;color:#fff;font-weight:600">执行</button>
+        <button class="btn" id="clearBtn">清空结果</button>
       </div>
-      <div class="hint" style="margin-top:6px">空跑只算不写：不备份、不改文件、xlsx 连临时文件都不落。</div>
+      <div class="hint" style="margin-top:6px">空跑只算不写；执行前会弹确认，只列启用的规则。</div>
       <div id="summary" style="margin-top:8px"></div>
-      <div id="rowsWrap" style="max-height:52vh;overflow:auto;display:none;margin-top:6px"></div>
+      <div id="rowsWrap" style="max-height:46vh;overflow:auto;display:none;margin-top:6px"></div>
     </div>
   </div>
 </div>
@@ -142,20 +171,63 @@ input.n{width:60px;padding:2px 5px;font-size:11.5px}
       <div class="hint">目录很大先限个数，看命中面够了再全量。</div>
     </div>
     <div class="grp">
-      <h4>备份 <span class="badge todo">执行时生效</span></h4>
+      <h4>备份</h4>
       <label class="ctl"><span class="radio" data-b="zip"></span>整体打包<span class="sp"></span><span class="hint">上层目录 .bak.zip</span></label>
       <label class="ctl"><span class="radio on" data-b="file"></span>按文件<span class="badge">默认</span><span class="sp"></span><span class="hint">同目录 .bak</span></label>
       <label class="ctl"><span class="radio" data-b="none"></span>不备份<span class="sp"></span><span class="hint" style="color:#cf222e">无法回滚</span></label>
-      <div class="hint" style="margin-top:4px">这一版界面只做空跑，备份方式先记住，「执行」接通后直接用它。</div>
+      <div class="hint" style="margin-top:4px">「执行」时按这个方式先备份再原地覆盖。</div>
     </div>
     <div class="grp">
-      <h4>报告 <span class="badge todo">执行时生效</span></h4>
+      <h4>报告</h4>
       <label class="ctl">HTML 报告路径<input type="text" id="inReport" value="明细.html"><span class="sp"></span></label>
     </div>
     <div class="grp" style="border-bottom:none">
       <h4>规则</h4>
       <label class="ctl">规则文件<span class="sp"></span><span class="hint" id="optRulesPath"></span></label>
       <div class="hint">保存时先备份旧文件；外部改过会拒绝覆盖。</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="confirmBox">
+  <div class="pbox" style="width:620px">
+    <div class="hh">确认执行<span class="sp"></span><span class="hint">只有启用的规则会被执行</span></div>
+    <div style="padding:10px 14px">
+      <div class="kv"><span class="k">目标</span><span class="v" id="cfTarget"></span></div>
+      <div class="kv"><span class="k">备份</span><span class="v" id="cfBackup"></span></div>
+      <div class="kv"><span class="k">报告</span><span class="v" id="cfReport"></span></div>
+      <div class="kv"><span class="k">顺序</span><span class="v" id="cfSteps"></span></div>
+      <div class="slist" id="cfRules"></div>
+      <div class="hint" style="margin-top:8px;color:#cf222e">执行会原地覆盖文件（先按上面的方式备份），确认无误再点。</div>
+    </div>
+    <div class="pfoot">
+      <span style="flex:1"></span>
+      <button class="btn" id="cfCancel">取消</button>
+      <button class="btn" id="cfOk" style="background:#1f883d;border-color:#1f883d;color:#fff;font-weight:600">确认执行</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="saveAsBox">
+  <div class="pbox" style="width:600px">
+    <div class="hh">规则库另存为<span class="sp"></span></div>
+    <div style="padding:10px 14px">
+      <label class="f">目录</label>
+      <div class="row">
+        <input type="text" id="saDir" placeholder="点「浏览…」选目录">
+        <button class="btn" id="saBrowse">浏览…</button>
+      </div>
+      <label class="f">文件名</label>
+      <div class="row">
+        <input type="text" id="saName" value="rules.json">
+      </div>
+      <div class="hint" style="margin-top:6px">保存后，后续「保存规则库」也会跟着写到这里。</div>
+      <div class="hint" id="saMsg" style="margin-top:4px;color:#cf222e"></div>
+    </div>
+    <div class="pfoot">
+      <span style="flex:1"></span>
+      <button class="btn" id="saCancel">取消</button>
+      <button class="btn blue" id="saOk">保存</button>
     </div>
   </div>
 </div>
@@ -186,6 +258,9 @@ let state = {rules: [], presets: [], rulesPath: '', rulesMtime: 0, version: ''};
 let sel = 0, tab = 'rules';
 let opts = {recursive: true, limit: 200, backup: 'file', report: '明细.html'};
 let pick = {path: '', parent: ''};
+let queue = [];          // 待执行队列：{name, rules}
+let loadedPreset = '';   // 从哪个案例载入的，用作队列项名字
+let pickMode = 'target'; // target | saveas
 
 function banner(kind, msg, action) {
   const b = $('#banner');
@@ -401,6 +476,7 @@ async function loadPreset(p) {
   const list = p.rules || [];
   if (state.rules.length && !confirm('用案例「' + p.name + '」的 ' + list.length + ' 条规则替换当前规则库？\n（想留底就先点右上角「保存规则库」）')) return;
   state.rules = JSON.parse(JSON.stringify(list));
+  loadedPreset = p.name;
   sel = 0;
   showTab('rules');
   renderAll();
@@ -438,6 +514,7 @@ async function ls(path) {
 }
 
 $('#browseBtn').onclick = () => {
+  pickMode = 'target';
   $('#picker').classList.add('on');
   ls($('#target').value.trim() || '');
 };
@@ -445,7 +522,14 @@ $('#pickCancel').onclick = () => $('#picker').classList.remove('on');
 $('#pickUp').onclick = () => ls(pick.parent || '');
 $('#pickRoots').onclick = () => ls('');
 $('#pickOk').onclick = () => {
-  if (pick.path) $('#target').value = pick.path;
+  if (pick.path) {
+    if (pickMode === 'saveas') {
+      $('#saDir').value = pick.path;
+      $('#saveAsBox').classList.add('on');
+    } else {
+      $('#target').value = pick.path;
+    }
+  }
   $('#picker').classList.remove('on');
 };
 $('#picker').onclick = e => { if (e.target.id === 'picker') $('#picker').classList.remove('on'); };
@@ -465,21 +549,49 @@ document.querySelectorAll('.radio[data-b]').forEach(r => {
   r.onclick = () => { opts.backup = r.dataset.b; renderOpts(); };
 });
 
-async function runPreview() {
+function activeRules(rules) {
+  return (rules || []).filter(r => r.enabled !== false);
+}
+
+// stepsForRun：队列为空时用当前规则库，避免「忘了加队列」就跑不动
+function stepsForRun() {
+  if (queue.length) return queue.map(q => ({name: q.name, rules: q.rules}));
+  return [{name: '当前规则库', rules: state.rules}];
+}
+
+async function runFlow(dry) {
   const target = $('#target').value.trim();
-  if (!target) { banner('err', '先选目标路径（右边「浏览…」）'); return; }
-  if (!state.rules.length) { banner('err', '规则库是空的，先从案例载入一套'); return; }
+  if (!target) { banner('err', '先选目标路径（「浏览…」）'); return null; }
+  const steps = stepsForRun();
+  if (!steps.some(st => activeRules(st.rules).length)) {
+    banner('err', '没有启用的规则，先启用几条或从案例载入一套');
+    return null;
+  }
   $('#runBtn').disabled = true;
-  $('#prevHint').textContent = '跑着…';
+  $('#execBtn').disabled = true;
+  $('#prevHint').textContent = dry ? '空跑中…' : '执行中…';
   try {
-    const res = await api('/api/preview', {target, rules: state.rules, recursive: opts.recursive, limit: opts.limit});
-    if (!res.ok) { banner('err', res.error || '预演失败'); return; }
+    const res = await api('/api/run', {
+      target, steps, recursive: opts.recursive, limit: opts.limit,
+      backup: opts.backup, report: opts.report, dry, open: !dry
+    });
+    if (!res.ok) { banner('err', res.error || '执行失败'); return null; }
     renderPreview(res.result);
-    banner('ok', '空跑完成：' + res.result.files + ' 个文件 / ' + res.result.hits + ' 处命中，未写盘。');
+    if (dry) {
+      banner('ok', '空跑完成：扫描 ' + res.result.files + ' 个文件 · 命中 ' + res.result.hits + ' 处，未写盘。');
+    } else {
+      const r = res.result;
+      banner('ok', '已写入 ' + r.written + ' 个文件（' + r.hits + ' 处）'
+        + (r.failed ? '，失败 ' + r.failed + ' 个' : '')
+        + (r.backup ? '，整体备份 ' + r.backup.split(/[\/]/).pop() : ''));
+    }
+    return res.result;
   } catch (e) {
     banner('err', '请求失败：' + e.message);
+    return null;
   } finally {
     $('#runBtn').disabled = false;
+    $('#execBtn').disabled = false;
     $('#prevHint').textContent = '';
   }
 }
@@ -493,6 +605,20 @@ function renderPreview(r) {
   line.textContent = '扫描 ' + r.files + ' 个文件 · 命中 ' + r.hits + ' 处 · ' + r.rows.length + ' 行明细'
     + (r.truncated ? '（已截断，先缩小范围）' : '');
   sum.append(line);
+  if (r.steps && r.steps.length > 1) {
+    const sd = document.createElement('div');
+    sd.className = 'hint';
+    sd.textContent = '按顺序：' + r.steps.map(x => x.name + ' ' + x.hits + ' 处').join('  →  ');
+    sum.append(sd);
+  }
+  if (!r.dry) {
+    const wd = document.createElement('div');
+    wd.className = 'hint';
+    wd.style.color = r.failed ? '#cf222e' : '#1a7f37';
+    wd.textContent = '已写入 ' + r.written + ' 个文件' + (r.failed ? '，失败 ' + r.failed + ' 个' : '')
+      + (r.backup ? ' · 整体备份 ' + r.backup : '');
+    sum.append(wd);
+  }
   (r.problems || []).slice(0, 5).forEach(p => {
     const d = document.createElement('div');
     d.className = 'hint';
@@ -538,6 +664,154 @@ function renderPreview(r) {
   wrap.append(t);
 }
 
+/* ── 待执行队列 ───────────────────────── */
+function activeRules(rules) {
+  return (rules || []).filter(r => r.enabled !== false);
+}
+
+function renderQueue() {
+  const box = $('#queueList');
+  box.innerHTML = '';
+  if (!queue.length) {
+    const d = document.createElement('div');
+    d.className = 'hint';
+    d.style.padding = '2px 2px 6px';
+    d.textContent = '队列是空的：空跑/执行会用当前规则库。想跑多套就「+ 加入队列」。';
+    box.append(d);
+  }
+  queue.forEach((q, i) => {
+    const d = document.createElement('div');
+    d.className = 'qitem';
+    const n = document.createElement('span');
+    n.className = 'n';
+    n.textContent = (i + 1) + '. ' + q.name;
+    n.title = q.name;
+    const m = document.createElement('span');
+    m.className = 'm';
+    m.textContent = activeRules(q.rules).length + '/' + (q.rules || []).length;
+    const up = document.createElement('span');
+    up.className = 'mv'; up.textContent = '↑'; up.title = '上移';
+    up.onclick = () => { if (i > 0) { const t = queue[i - 1]; queue[i - 1] = queue[i]; queue[i] = t; renderQueue(); } };
+    const down = document.createElement('span');
+    down.className = 'mv'; down.textContent = '↓'; down.title = '下移';
+    down.onclick = () => { if (i < queue.length - 1) { const t = queue[i + 1]; queue[i + 1] = queue[i]; queue[i] = t; renderQueue(); } };
+    const x = document.createElement('span');
+    x.className = 'x'; x.textContent = '×'; x.title = '移出队列';
+    x.onclick = () => { queue.splice(i, 1); renderQueue(); };
+    d.append(n, m, up, down, x);
+    box.append(d);
+  });
+  $('#queueHint').textContent = queue.length ? queue.length + ' 套' : '空';
+}
+
+$('#enqueueBtn').onclick = () => {
+  if (!state.rules.length) { banner('err', '规则库是空的，先从案例载入一套'); return; }
+  const base = loadedPreset || ('策略' + (queue.length + 1));
+  queue.push({name: queue.length ? base + ' #' + (queue.length + 1) : base, rules: JSON.parse(JSON.stringify(state.rules))});
+  renderQueue();
+  banner('ok', '已加入队列：' + activeRules(state.rules).length + ' 条启用规则');
+};
+$('#clearQueueBtn').onclick = () => { queue = []; renderQueue(); };
+
+/* ── 执行确认：只列启用的规则 ──────────── */
+function openConfirm() {
+  const target = $('#target').value.trim();
+  if (!target) { banner('err', '先选目标路径（「浏览…」）'); return; }
+  const steps = stepsForRun();
+  if (!steps.some(st => activeRules(st.rules).length)) { banner('err', '没有启用的规则，先启用几条'); return; }
+
+  $('#cfTarget').textContent = target;
+  const bmap = {zip: '整体打包（上层目录 .bak.zip）', file: '按文件（同目录 .bak）', none: '不备份（无法回滚）'};
+  $('#cfBackup').textContent = bmap[opts.backup] || opts.backup;
+  $('#cfReport').textContent = opts.report || '（不导出）';
+  $('#cfSteps').textContent = steps.map((st, i) => (i + 1) + '. ' + st.name).join('  →  ');
+
+  const box = $('#cfRules');
+  box.innerHTML = '';
+  steps.forEach((st, i) => {
+    const b = document.createElement('div');
+    b.className = 'sblock';
+    const h = document.createElement('div');
+    h.className = 'h';
+    h.textContent = (i + 1) + '. ' + st.name;
+    b.append(h);
+    const on = activeRules(st.rules);
+    const off = (st.rules || []).filter(r => r.enabled === false);
+    on.forEach(r => {
+      const d = document.createElement('div');
+      d.className = 'r';
+      d.textContent = '· ' + (r.desc || r.id || '(未命名)') + '（' + (r.type || 'regex') + '）';
+      b.append(d);
+    });
+    off.forEach(r => {
+      const d = document.createElement('div');
+      d.className = 'r off';
+      d.textContent = '× ' + (r.desc || r.id || '(未命名)') + '（停用，不跑）';
+      b.append(d);
+    });
+    if (!on.length) {
+      const d = document.createElement('div');
+      d.className = 'r off';
+      d.textContent = '（这一套没有启用的规则，会被跳过）';
+      b.append(d);
+    }
+    box.append(b);
+  });
+  $('#confirmBox').classList.add('on');
+}
+$('#execBtn').onclick = openConfirm;
+$('#cfCancel').onclick = () => $('#confirmBox').classList.remove('on');
+$('#confirmBox').onclick = e => { if (e.target.id === 'confirmBox') $('#confirmBox').classList.remove('on'); };
+$('#cfOk').onclick = async () => {
+  $('#confirmBox').classList.remove('on');
+  await runFlow(false);
+};
+
+/* ── 规则库另存为 ─────────────────────── */
+function splitPath(p) {
+  const i = Math.max(p.lastIndexOf('/'), p.lastIndexOf('\\'));
+  return i < 0 ? ['', p] : [p.slice(0, i), p.slice(i + 1)];
+}
+function joinPath(dir, name) {
+  const sep = dir.indexOf('\\') >= 0 ? '\\' : '/';
+  return dir.replace(/[\\/]+$/, '') + sep + name;
+}
+
+function openSaveAs() {
+  const parts = splitPath(state.rulesPath || '');
+  $('#saDir').value = parts[0];
+  $('#saName').value = parts[1] || 'rules.json';
+  $('#saMsg').textContent = '';
+  $('#saveAsBox').classList.add('on');
+}
+$('#saveAsBtn').onclick = openSaveAs;
+$('#saCancel').onclick = () => $('#saveAsBox').classList.remove('on');
+$('#saveAsBox').onclick = e => { if (e.target.id === 'saveAsBox') $('#saveAsBox').classList.remove('on'); };
+$('#saBrowse').onclick = () => {
+  pickMode = 'saveas';
+  $('#saveAsBox').classList.remove('on');
+  $('#picker').classList.add('on');
+  ls($('#saDir').value.trim() || '');
+};
+$('#saOk').onclick = async () => {
+  const dir = $('#saDir').value.trim();
+  let name = $('#saName').value.trim() || 'rules.json';
+  if (!dir) { $('#saMsg').textContent = '先选目录'; return; }
+  if (!/\.json$/i.test(name)) name += '.json';
+  try {
+    const res = await api('/api/rules', {rules: state.rules, baseMtime: 0, path: joinPath(dir, name)});
+    if (!res.ok) { $('#saMsg').textContent = res.error || '保存失败'; return; }
+    state.rulesPath = res.path;
+    state.rulesMtime = res.mtime || 0;
+    $('#rulePath').textContent = splitPath(state.rulesPath)[1];
+    $('#optRulesPath').textContent = state.rulesPath;
+    $('#saveAsBox').classList.remove('on');
+    banner('ok', '已另存为 ' + state.rulesPath);
+  } catch (e) {
+    $('#saMsg').textContent = '保存失败：' + e.message;
+  }
+};
+
 async function saveRules() {
   try {
     const res = await api('/api/rules', {rules: state.rules, baseMtime: state.rulesMtime});
@@ -582,9 +856,10 @@ $('#addBtn').onclick = () => {
   showTab('rules');
   renderAll();
 };
-$('#runBtn').onclick = runPreview;
+$('#runBtn').onclick = () => runFlow(true);
 $('#clearBtn').onclick = () => { $('#rowsWrap').style.display = 'none'; $('#rowsWrap').innerHTML = ''; $('#summary').innerHTML = ''; $('#prevHint').textContent = ''; };
 $('#saveBtn').onclick = saveRules;
+renderQueue();
 $('#quitBtn').onclick = async () => {
   try { await api('/api/quit', {}); } catch (e) {}
   document.body.innerHTML = '<p style="padding:24px;font:14px system-ui">已退出，可以关掉这个标签页。</p>';
@@ -607,7 +882,7 @@ async function selftest(target) {
     rep.editorTitle = document.querySelector('#editTitle').textContent;
     rep.listRendered = document.querySelectorAll('#listRules .ritem').length;
     document.querySelector('#target').value = target;
-    await runPreview();
+    await runFlow(true);
     const sum = document.querySelector('#summary').textContent.trim();
     rep.summary = sum;
     rep.hits = parseInt((sum.match(/(\d+)\s*处/) || [0, '0'])[1], 10);
@@ -615,6 +890,41 @@ async function selftest(target) {
     rep.rows = document.querySelectorAll('#rowsWrap tbody tr').length;
     rep.marked = document.querySelectorAll('#rowsWrap mark').length;
     rep.banner = document.querySelector('#banner').className;
+
+    // 队列：把当前规则库加进去，再空跑一次
+    const mode = new URLSearchParams(location.search).get('selftest');
+    if (mode === 'confirmoff' && state.rules.length) {
+      state.rules[0].enabled = false; // 留一条停用的，验证确认弹窗怎么显示
+      renderAll();
+    }
+    document.querySelector('#enqueueBtn').click();
+    rep.queueLen = queue.length;
+    const res2 = await runFlow(true);
+    rep.queueHits = res2 ? res2.hits : -1;
+
+    // 确认弹窗：只列启用规则，停用的单独标注
+    openConfirm();
+    rep.confirmShown = document.querySelector('#confirmBox').classList.contains('on');
+    rep.confirmBlocks = document.querySelectorAll('#cfRules .sblock').length;
+    rep.confirmActive = document.querySelectorAll('#cfRules .r:not(.off)').length;
+    rep.confirmOff = document.querySelectorAll('#cfRules .off').length;
+    // 只想看确认弹窗时停在这里（截图用）
+    if (mode === 'confirm' || mode === 'confirmoff') {
+      const pre0 = document.createElement('pre');
+      pre0.id = 'selftest-report';
+      pre0.style.display = 'none';
+      pre0.textContent = JSON.stringify(rep);
+      document.body.append(pre0);
+      return;
+    }
+    document.querySelector('#cfCancel').click();
+
+
+    // 真执行（样例目录是临时拷贝，改了也无所谓）
+    const res3 = await runFlow(false);
+    rep.executed = res3 ? res3.written : -1;
+    rep.execHits = res3 ? res3.hits : -1;
+    rep.execFailed = res3 ? res3.failed : -1;
   } catch (e) {
     rep.ok = false;
     rep.error = String(e);

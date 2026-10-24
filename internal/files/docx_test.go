@@ -315,3 +315,57 @@ func TestProcessDocxParagraphNumbering(t *testing.T) {
 		t.Errorf("空行占段1，命中应在段2, got %q", stats.Order[0].Loc)
 	}
 }
+
+func TestProcessTextPassesInOrder(t *testing.T) {
+	dir := t.TempDir()
+	file := filepath.Join(dir, "a.txt")
+	if err := os.WriteFile(file, []byte("代号 ABC-0001 与 13800138000"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	pass1 := Pass{Name: "第一步", Rules: mustRules(t, `[{"id":"a","type":"literal","find":"ABC","replace":"XYZ"}]`)}
+	pass2 := Pass{Name: "第二步", Rules: mustRules(t, `[{"id":"b","type":"regex","pattern":"XYZ-[0-9]+","replace":"SITE-0000"}]`)}
+	stats := NewStats()
+	pd, err := ProcessTextPasses(file, []Pass{pass1, pass2}, stats)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pd == nil || pd.Hits != 2 {
+		t.Fatalf("两步应各命中 1 处, got %+v", pd)
+	}
+	if err := pd.Write(false); err != nil {
+		t.Fatal(err)
+	}
+	got, _ := os.ReadFile(file)
+	if string(got) != "代号 SITE-0000 与 13800138000" {
+		t.Fatalf("顺序执行结果不对: %q", got)
+	}
+	var labels []string
+	for _, d := range stats.Order {
+		labels = append(labels, d.Label)
+	}
+	joined := strings.Join(labels, " | ")
+	if !strings.Contains(joined, "第一步 / ") || !strings.Contains(joined, "第二步 / ") {
+		t.Errorf("多策略时命中要标出属于哪一步: %v", labels)
+	}
+}
+
+func TestProcessDocxPassesInOrder(t *testing.T) {
+	body := `<w:p><w:r><w:t>代号 ABC-0001</w:t></w:r></w:p>`
+	path := makeDocx(t, "j.docx", docxParts(body))
+	pass1 := Pass{Name: "第一步", Rules: mustRules(t, `[{"id":"a","type":"literal","find":"ABC","replace":"XYZ"}]`)}
+	pass2 := Pass{Name: "第二步", Rules: mustRules(t, `[{"id":"b","type":"regex","pattern":"XYZ-[0-9]+","replace":"SITE-0000"}]`)}
+	pd, err := ProcessDocxPasses(path, []Pass{pass1, pass2}, NewStats(), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pd == nil || pd.Hits != 2 {
+		t.Fatalf("两步应各命中 1 处, got %+v", pd)
+	}
+	if err := pd.Write(false); err != nil {
+		t.Fatal(err)
+	}
+	got := docxText(readZipEntry(t, path, "word/document.xml"))
+	if got != "代号 SITE-0000" {
+		t.Fatalf("docx 顺序执行结果不对: %q", got)
+	}
+}

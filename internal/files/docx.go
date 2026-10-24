@@ -52,10 +52,15 @@ func partLabel(name string) string {
 	return base
 }
 
-// ProcessDocx 就地处理 .docx：只改 word/ 下承载文字的 XML 部件，
+// ProcessDocx 就地处理 .docx（单组规则）。
+func ProcessDocx(path string, rs []*rules.Rule, stats *Stats, dry bool) (*Pending, error) {
+	return ProcessDocxPasses(path, SinglePass(rs), stats, dry)
+}
+
+// ProcessDocxPasses 就地处理 .docx：只改 word/ 下承载文字的 XML 部件，
 // 其余 zip 条目按原顺序、原压缩方式搬过去，样式和图片不受影响。
 // dry 为真时只算不落盘（界面预演用）。
-func ProcessDocx(path string, rs []*rules.Rule, stats *Stats, dry bool) (*Pending, error) {
+func ProcessDocxPasses(path string, passes []Pass, stats *Stats, dry bool) (*Pending, error) {
 	zr, err := zip.OpenReader(path)
 	if err != nil {
 		return nil, err
@@ -84,7 +89,7 @@ func ProcessDocx(path string, rs []*rules.Rule, stats *Stats, dry bool) (*Pendin
 		if bytes.Contains(raw, []byte("<w:del ")) || bytes.Contains(raw, []byte("<w:ins ")) {
 			hasTracked = true
 		}
-		out, hits := rewriteDocxPart(raw, f.Name, rs, stats, path)
+		out, hits := rewriteDocxPart(raw, f.Name, passes, stats, path)
 		if hits > 0 {
 			replaced[f.Name] = out
 			total += hits
@@ -158,14 +163,13 @@ func rebuildZip(zr *zip.Reader, replaced map[string][]byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// textNode 是段落里的一个 <w:t>，同时记下它在段落纯文本中的区间。
+// textNode 是段落里的一个 <w:t>：记下 XML 字节区间，文本内容单独存。
 type textNode struct {
-	contentStart, contentEnd int // 在 XML 字节里的内容区间
-	start, end               int // 在拼接文本里的区间
+	contentStart, contentEnd int
 }
 
 // rewriteDocxPart 逐段改写一个 XML 部件，返回新字节与实际改动数。
-func rewriteDocxPart(raw []byte, part string, rs []*rules.Rule, stats *Stats, path string) ([]byte, int) {
+func rewriteDocxPart(raw []byte, part string, passes []Pass, stats *Stats, path string) ([]byte, int) {
 	var out bytes.Buffer
 	total, para, pos := 0, 0, 0
 	for {
@@ -190,7 +194,7 @@ func rewriteDocxPart(raw []byte, part string, rs []*rules.Rule, stats *Stats, pa
 		}
 		pEnd := p + rel + len("</w:p>")
 		para++
-		newRegion, hits := rewriteParagraph(raw[p:pEnd], part, para, rs, stats, path)
+		newRegion, hits := rewriteParagraph(raw[p:pEnd], part, para, passes, stats, path)
 		total += hits
 		out.Write(raw[pos:p])
 		out.Write(newRegion)
@@ -202,13 +206,12 @@ func rewriteDocxPart(raw []byte, part string, rs []*rules.Rule, stats *Stats, pa
 
 // rewriteParagraph 处理单个段落。
 //
-// Word 会把一句话切成多个 <w:t>（改过格式、拼写检查、修订都会切），
-// 命中可能横跨两个 run。做法：先把整段文字拼起来跑引擎，再把结果按
-// 字符归属分回各个 <w:t>——替换值落在命中起点所在的那个 run，
-// 这样命中之外的格式（加粗、颜色）不会被抹掉。
-func rewriteParagraph(region []byte, part string, para int, rs []*rules.Rule, stats *Stats, path string) ([]byte, int) {
+// Word 会把一句话切成多个 <w:t>（改过格式、拼写检查、修订都会切），命中可能横跨
+// 两个 run。做法：把整段文字拼起来按策略顺序跑，再把结果按「字符原本属于哪个
+// <w:t>」分回去——替换值落在命中起点所在的 run，命中之外的格式不会被抹掉。
+func rewriteParagraph(region []byte, part string, para int, passes []Pass, stats *Stats, path string) ([]byte, int) {
 	var nodes []textNode
-	var concat strings.Builder
+	var texts []string
 	search := 0
 	for {
 		o := findOpenTag(region, search, "w:t")
@@ -230,60 +233,87 @@ func rewriteParagraph(region []byte, part string, para int, rs []*rules.Rule, st
 		}
 		contentStart := openEnd
 		contentEnd := openEnd + rel
-		txt := xmlUnescape(string(region[contentStart:contentEnd]))
-		start := concat.Len()
-		concat.WriteString(txt)
-		nodes = append(nodes, textNode{
-			contentStart: contentStart,
-			contentEnd:   contentEnd,
-			start:        start,
-			end:          start + len(txt),
-		})
+		nodes = append(nodes, textNode{contentStart: contentStart, contentEnd: contentEnd})
+		texts = append(texts, xmlUnescape(string(region[contentStart:contentEnd])))
 		search = contentEnd + len("</w:t>")
 	}
 	if len(nodes) == 0 {
 		return region, 0
 	}
 
-	text := concat.String()
-	_, hits := mask.Apply(text, rs)
-	if len(hits) == 0 {
-		return region, 0
-	}
-	changed := 0
-	for _, h := range hits {
-		if h.After != h.Original {
-			changed++
-		}
-	}
 	loc := partLabel(part) + " 段" + itoa(para)
-	for _, h := range hits {
-		stats.Add(path, h, text, LocatorFunc(func(int) string { return loc }))
+	changed := 0
+	for pi, ps := range passes {
+		stats.SetStage(stageLabel(passes, pi))
+		cur := strings.Join(texts, "")
+		if cur == "" {
+			continue
+		}
+		next, hits := mask.Apply(cur, ps.Rules)
+		if len(hits) == 0 {
+			continue
+		}
+		for _, h := range hits {
+			if h.After != h.Original {
+				changed++
+			}
+			stats.Add(path, h, cur, LocatorFunc(func(int) string { return loc }))
+		}
+		texts = distribute(cur, texts, next, hits)
 	}
 	if changed == 0 {
 		return region, 0
 	}
 
-	// 把新文本按字符归属分回各个 <w:t>
-	outs := make([]strings.Builder, len(nodes))
+	var b bytes.Buffer
+	last := 0
+	for i, n := range nodes {
+		b.Write(region[last:n.contentStart])
+		if texts[i] != "" {
+			b.WriteString(xmlEscape(texts[i]))
+		}
+		last = n.contentEnd
+	}
+	b.Write(region[last:])
+	return b.Bytes(), changed
+}
+
+// distribute 把替换后的整段文字按字符归属分回各个 <w:t>：
+// 命中片段整体落在命中起点所在的 run，命中之外的字符留在原来的 run。
+func distribute(oldText string, texts []string, newText string, hits []mask.Hit) []string {
+	starts := make([]int, len(texts))
+	ends := make([]int, len(texts))
+	acc := 0
+	for i, t := range texts {
+		starts[i] = acc
+		acc += len(t)
+		ends[i] = acc
+	}
 	nodeAt := func(off int) int {
-		i := sort.Search(len(nodes), func(i int) bool { return nodes[i].start > off }) - 1
+		i := sort.Search(len(starts), func(i int) bool { return starts[i] > off }) - 1
 		if i < 0 {
 			i = 0
 		}
+		if i >= len(texts) {
+			i = len(texts) - 1
+		}
 		return i
 	}
+	outs := make([]strings.Builder, len(texts))
 	copyRange := func(a, b int) {
-		for i := nodeAt(a); i < len(nodes) && a < b; i++ {
+		for i := nodeAt(a); i < len(texts) && a < b; i++ {
 			from, to := a, b
-			if from < nodes[i].start {
-				from = nodes[i].start
+			if from < starts[i] {
+				from = starts[i]
 			}
-			if to > nodes[i].end {
-				to = nodes[i].end
+			if to > ends[i] {
+				to = ends[i]
 			}
-			if from < to {
-				outs[i].WriteString(text[from:to])
+			if from < to && from >= 0 && to <= len(oldText) {
+				outs[i].WriteString(oldText[from:to])
+			}
+			if ends[i] >= b {
+				break
 			}
 		}
 	}
@@ -293,19 +323,13 @@ func rewriteParagraph(region []byte, part string, para int, rs []*rules.Rule, st
 		outs[nodeAt(h.Start)].WriteString(h.After)
 		pos = h.End
 	}
-	copyRange(pos, len(text))
+	copyRange(pos, len(oldText))
 
-	var b bytes.Buffer
-	last := 0
-	for i, n := range nodes {
-		b.Write(region[last:n.contentStart])
-		if outs[i].Len() > 0 {
-			b.WriteString(xmlEscape(outs[i].String()))
-		}
-		last = n.contentEnd
+	out := make([]string, len(texts))
+	for i := range outs {
+		out[i] = outs[i].String()
 	}
-	b.Write(region[last:])
-	return b.Bytes(), changed
+	return out
 }
 
 // selfClosing 判断 openEnd 前是不是自闭合的 “/>”，容忍多余空格。

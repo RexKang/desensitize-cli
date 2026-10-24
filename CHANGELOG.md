@@ -2,6 +2,27 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)，格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.7.0] - 2026-10-24
+
+界面补上「执行」这条链路，不再只有空跑。
+
+### 新增
+
+- **待执行队列**：编辑好的策略可以「+ 加入队列」，排队多套、上下移、移出、清空；
+  队列项是规则库快照，改规则不会影响已入队的策略
+- **顺序执行**：按队列顺序把各套规则作用在同一份内容的每个单元上（文本行、单元格、段落），
+  最后只写一次盘——不会出现「第二套规则又脱敏一遍第一套产物」
+- **执行前确认弹窗**：只列启用的规则（停用的灰掉标注），并复述目标路径、备份方式、报告路径、策略顺序
+- **执行**：备份（整体 zip / 按文件 / 不备份）→ 原地覆盖 → 导出 HTML 报告并打开
+- **规则库另存为**：可以挑目录和文件名存到任意位置，存完后续「保存规则库」也跟着走
+- `/api/run`：空跑与执行同一个接口，`dry` 区分；空跑不落任何临时文件
+- 多策略时，命中明细会标出属于哪一套（`策略名 / 规则名`）
+
+### 说明
+
+- 队列为空时，空跑/执行自动用当前规则库，并在一处提示
+- 执行写入的就是界面里看到的那批文件：扫描上限、递归开关、备份方式全部按设置走
+
 ## [0.6.1] - 2026-10-24
 
 ### 修复
@@ -205,6 +226,7 @@
 - `tests/verify.py`：45 条断言，覆盖五种规则类型、编码写回、xlsx 数值/日期/公式、嵌套递归、隐藏目录
 - GitHub Actions：ubuntu-latest 3.10 / 3.13、windows-latest 3.12
 
+[0.7.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.7.0
 [0.6.1]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.6.1
 [0.6.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.6.0
 [0.5.3]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.5.3
