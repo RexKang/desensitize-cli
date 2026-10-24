@@ -173,6 +173,17 @@ func rewriteDocxPart(raw []byte, part string, rs []*rules.Rule, stats *Stats, pa
 		if p < 0 {
 			break
 		}
+		// <w:p/> 是 Word 里的空行，自带闭合，不能跟后面的段落拼成一个区域
+		gt := bytes.IndexByte(raw[p:], '>')
+		if gt < 0 {
+			break
+		}
+		openEnd := p + gt + 1
+		if selfClosing(raw, openEnd) {
+			para++
+			pos = openEnd
+			continue
+		}
 		rel := bytes.Index(raw[p:], []byte("</w:p>"))
 		if rel < 0 {
 			break
@@ -209,7 +220,7 @@ func rewriteParagraph(region []byte, part string, para int, rs []*rules.Rule, st
 			break
 		}
 		openEnd := o + gt + 1
-		if openEnd >= 2 && region[openEnd-2] == '/' { // <w:t/> 空节点
+		if selfClosing(region, openEnd) { // <w:t/> 空节点
 			search = openEnd
 			continue
 		}
@@ -295,6 +306,19 @@ func rewriteParagraph(region []byte, part string, para int, rs []*rules.Rule, st
 	}
 	b.Write(region[last:])
 	return b.Bytes(), changed
+}
+
+// selfClosing 判断 openEnd 前是不是自闭合的 “/>”，容忍多余空格。
+func selfClosing(data []byte, openEnd int) bool {
+	j := openEnd - 2
+	for j > 0 && isSpaceByte(data[j]) {
+		j--
+	}
+	return j >= 0 && data[j] == '/'
+}
+
+func isSpaceByte(b byte) bool {
+	return b == 0x20 || b == 0x09 || b == 0x0D || b == 0x0A || b == 0x0B || b == 0x0C
 }
 
 // findOpenTag 找 <name 或 <name>，要求标签边界完整（避免 <w:p 命中 <w:pPr）。

@@ -278,3 +278,40 @@ func TestDiscoverDocxAndDoc(t *testing.T) {
 		t.Errorf("应跳过 .doc 和 .xls, got %v", legacy)
 	}
 }
+
+// Word 的空行是 <w:p/>：不能跟后面段落拼成一个区域，否则会跨段落拼出假命中。
+func TestProcessDocxEmptyParagraphs(t *testing.T) {
+	body := `<w:p/>` +
+		`<w:p><w:r><w:t>尾部 13800138</w:t></w:r></w:p>` +
+		`<w:p/><w:p/>` +
+		`<w:p><w:r><w:t>000 后面</w:t></w:r></w:p>` +
+		`<w:p/>`
+	path := makeDocx(t, "h.docx", docxParts(body))
+	stats := NewStats()
+	pd, err := ProcessDocx(path, testRules(t), stats, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// 两段拼起来才像手机号，但分属不同段落，不该命中
+	if pd != nil {
+		t.Fatalf("跨段落不该命中, got %+v", pd)
+	}
+	if len(stats.Order) != 0 {
+		t.Fatalf("统计里不该有记录: %+v", stats.Order[0])
+	}
+}
+
+func TestProcessDocxParagraphNumbering(t *testing.T) {
+	body := `<w:p/>` + `<w:p><w:r><w:t>13800138000</w:t></w:r></w:p>`
+	path := makeDocx(t, "i.docx", docxParts(body))
+	stats := NewStats()
+	if _, err := ProcessDocx(path, testRules(t), stats, false); err != nil {
+		t.Fatal(err)
+	}
+	if len(stats.Order) == 0 {
+		t.Fatal("应当命中")
+	}
+	if stats.Order[0].Loc != "正文 段2" {
+		t.Errorf("空行占段1，命中应在段2, got %q", stats.Order[0].Loc)
+	}
+}
