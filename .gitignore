@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 本地规则与产物
+rules.json
+*.bak
+*.desensitize.tmp
+out/
+*.html
+*.csv
+!tests/fixtures/**
+
+# 自测夹具是生成的
+tests/fixtures/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

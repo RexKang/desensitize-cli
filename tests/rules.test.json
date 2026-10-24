@@ -1,0 +1,69 @@
+{
+  "_comment": "自测专用固定规则，不跟随 rules.json 的本地改动",
+  "version": "0.1.0",
+  "rules": [
+    {
+      "id": "email",
+      "desc": "邮箱",
+      "type": "regex",
+      "pattern": "[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}",
+      "replace": "user@example.com",
+      "enabled": true
+    },
+    {
+      "id": "id_card",
+      "desc": "身份证",
+      "type": "regex",
+      "pattern": "\\d{17}[\\dXx]",
+      "digit_boundary": true,
+      "replace": "{stars}",
+      "enabled": true
+    },
+    {
+      "id": "mobile",
+      "desc": "手机号",
+      "type": "regex",
+      "pattern": "1[3-9]\\d{9}",
+      "digit_boundary": true,
+      "replace": "{stars}",
+      "enabled": true
+    },
+    {
+      "id": "ipv4",
+      "desc": "IPv4",
+      "type": "ip_shift",
+      "first_octet": 203,
+      "offset": 7,
+      "source_cidrs": ["10.0.0.0/8", "192.168.0.0/16"],
+      "replace": "",
+      "enabled": true
+    },
+    {
+      "id": "tag_prefix",
+      "desc": "代号前缀",
+      "type": "literal",
+      "find": "AP-",
+      "boundary": "word",
+      "replace": "SITE-",
+      "enabled": true
+    },
+    {
+      "id": "ticket",
+      "desc": "工单号",
+      "type": "literal",
+      "find": "TCK-",
+      "boundary": "none",
+      "replace": "",
+      "enabled": true
+    },
+    {
+      "id": "hostname",
+      "desc": "主机名",
+      "type": "hash",
+      "pattern": "host-[a-z]{2,6}\\d{2,4}",
+      "keep_tail": 2,
+      "replace": "",
+      "enabled": true
+    }
+  ]
+}

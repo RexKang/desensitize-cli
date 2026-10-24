@@ -1,0 +1,67 @@
+{
+  "_comment": "默认样例规则。首次运行会自动复制成 rules.json；改 rules.json，别改这个文件。每种规则类型都给了一条示例，不需要的把 enabled 改成 false，或直接删掉那一条。",
+  "version": "0.1.0",
+  "rules": [
+    {
+      "id": "email",
+      "desc": "邮箱",
+      "type": "regex",
+      "pattern": "[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}",
+      "replace": "user@example.com",
+      "enabled": true,
+      "note": "整串替换成固定值，不保留原前缀"
+    },
+    {
+      "id": "mobile",
+      "desc": "手机号",
+      "type": "regex",
+      "pattern": "1[3-9]\\d{9}",
+      "digit_boundary": true,
+      "replace": "{stars}",
+      "enabled": true,
+      "note": "中国大陆 11 位手机号；{stars} 表示等长星号，也可以换成固定号码或 {head:3}00000000"
+    },
+    {
+      "id": "id_card",
+      "desc": "身份证",
+      "type": "regex",
+      "pattern": "\\d{17}[\\dXx]",
+      "digit_boundary": true,
+      "replace": "{stars}",
+      "enabled": true,
+      "note": "18 位身份证号（末位可能是 X）"
+    },
+    {
+      "id": "ipv4",
+      "desc": "IPv4",
+      "type": "ip_shift",
+      "first_octet": 203,
+      "offset": 7,
+      "source_cidrs": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
+      "replace": "",
+      "enabled": false,
+      "note": "按段位移：第一段固定 203，其余段 +7，超 255 取模。只动 source_cidrs 里的网段，避免把版本号误判成 IP。启用前先看 README 的「不可重跑」提示"
+    },
+    {
+      "id": "tag_prefix",
+      "desc": "代号前缀",
+      "type": "literal",
+      "find": "AP-",
+      "boundary": "word",
+      "replace": "SITE-",
+      "enabled": false,
+      "note": "字面替换。boundary=word 表示左边不能是字母数字，MAP-01 里的 AP- 不会被误伤"
+    },
+    {
+      "id": "hostname",
+      "desc": "主机名",
+      "type": "hash",
+      "pattern": "host-[a-z]{2,6}\\d{2,4}",
+      "keep_tail": 2,
+      "salt": "",
+      "replace": "",
+      "enabled": false,
+      "note": "前段做 SHA-256 取等长十六进制，末尾 keep_tail 位原样保留。pattern 按自己的命名规则改；salt 用来隔离项目。不可重跑"
+    }
+  ]
+}

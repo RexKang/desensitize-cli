@@ -1,0 +1,49 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: "3.10"
+          - os: ubuntu-latest
+            python: "3.13"
+          - os: windows-latest
+            python: "3.12"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: 安装依赖
+        run: python -m pip install --upgrade pip openpyxl
+
+      - name: 生成夹具并执行脱敏
+        run: |
+          python tests/make_demo.py
+          python desensitize.py tests/fixtures --yes --rules tests/rules.test.json
+
+      - name: 断言检查
+        run: python tests/verify.py
+
+      - name: 命令行冒烟（已脱敏数据复跑应为退出码 4）
+        shell: bash
+        run: |
+          set +e
+          python desensitize.py tests/fixtures --dry-run > /dev/null
+          code=$?
+          echo "exit=$code"
+          [ "$code" -eq 4 ]
