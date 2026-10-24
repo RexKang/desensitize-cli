@@ -13,6 +13,11 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
+# Windows 控制台默认 cp1252/cp936，直接 print 中文会抛 UnicodeEncodeError
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+
 FIX = Path(__file__).resolve().parent / "fixtures"
 sys.path.insert(0, str(FIX.parent.parent))
 from desensitize import Rule, detect_encoding  # noqa: E402

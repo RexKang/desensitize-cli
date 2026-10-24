@@ -11,6 +11,13 @@ from pathlib import Path
 
 from openpyxl import Workbook
 
+import sys
+
+# Windows 控制台默认 cp1252/cp936，打印路径里的中文会报错
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+
 FIX = Path(__file__).resolve().parent / "fixtures"
 
 TXT = """工单 TCK-2026-0001
