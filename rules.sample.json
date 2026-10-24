@@ -1,6 +1,6 @@
 {
-  "_comment": "默认样例规则。首次运行会自动复制成 rules.json；改 rules.json，别改这个文件。每种规则类型都给了一条示例，不需要的把 enabled 改成 false，或直接删掉那一条。",
-  "version": "0.1.0",
+  "_comment": "默认样例规则（Go 版与 python/ 下的旧版共用同一份 schema）。首次运行会自动复制成 rules.json；改 rules.json，别改这个文件。每种规则类型给了一条示例，不需要的把 enabled 改成 false 或直接删掉那一条。",
+  "version": "0.2.0",
   "rules": [
     {
       "id": "email",
@@ -37,7 +37,11 @@
       "type": "ip_shift",
       "first_octet": 203,
       "offset": 7,
-      "source_cidrs": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
+      "source_cidrs": [
+        "10.0.0.0/8",
+        "172.16.0.0/12",
+        "192.168.0.0/16"
+      ],
       "replace": "",
       "enabled": false,
       "note": "按段位移：第一段固定 203，其余段 +7，超 255 取模。只动 source_cidrs 里的网段，避免把版本号误判成 IP。启用前先看 README 的「不可重跑」提示"

@@ -1,4 +1,11 @@
-# Python
+# Go
+bin/
+dist/
+*.exe
+*.test
+*.out
+
+# Python（python/ 下的旧实现）
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -12,10 +19,9 @@ rules.json
 out/
 *.html
 *.csv
-!tests/fixtures/**
 
 # 自测夹具是生成的
-tests/fixtures/
+python/tests/fixtures/
 
 # 编辑器 / 系统
 .vscode/

@@ -2,9 +2,41 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)，格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.2.0] - 2026-10-24
+
+改用 Go 重写，单个可执行文件跑起来不需要 Python 环境；行为与 0.1.0 逐字节对齐（同样的 `rules.json`、
+同样的预演汇总、同样的备份与编码处理），并新增处理完自动打开报告。
+
+### 变更
+
+- **主实现改为 Go**：`cmd/desensitize` + `internal/{rules,mask,files,report,browser,fileurl}`，
+  按 `cmd/` + `internal/` 分层，平台相关的打开浏览器逻辑用构建标签分文件
+- **Python 版移入 `python/` 并冻结**：仍然可跑，行为作为对照；新功能只进 Go 版
+- **版本注入**：`go build -ldflags "-X main.version=v0.2.0"`，`--version` 输出编译期版本
+
+### 新增
+
+- **处理完自动打开 HTML 报告**：`--report x.html` 之后自动判断能否拉起浏览器——
+  `--no-open` 或 `DESENSITIZE_NO_BROWSER` 显式关闭；stdout 不是终端（管道/CI/服务）只打印路径；
+  图形会话下 Windows 走 `rundll32`、Linux 走 `xdg-open`（无 `DISPLAY`/`WAYLAND_DISPLAY` 自动降级）、macOS 走 `open`
+- **`--open`**：没给 `--report` 时自动生成临时 HTML 报告并打开，方便先看再决定
+- **跳过日期单元格提示**：xlsx 里被跳过的日期格数量会列在明细里，不再只是静默不动
+
+### 修复
+
+- xlsx 文本格写回时保持原类型：`TCK-0001` 脱敏成 `0001` 仍是文本，不会被 `SetCellInt` 写成 `1`
+- 报告里的本地链接改成 `file:///C:/...` 三斜杠，Windows 上双击才有效
+- 开关可以写在目标后面（`desensitize data --dry-run`），不再被标准库 flag 的「遇到第一个非开关就停」吃掉
+
+### 工程
+
+- 35 个 Go 测试函数：规则与模板、引擎优先级、编码往返、xlsx 单元格、目录发现、CLI 退出码、打开判断
+- CI 拆成两个 job：Go（ubuntu / windows 1.26，`gofmt` + `go vet` + `go test`）与 Python（ubuntu 3.10 / 3.13，45 条断言）
+- 交叉验证：同一批夹具分别用 Python 与 Go 处理，4 个文本文件逐字节一致，xlsx 单元格零差异
+
 ## [0.1.0] - 2026-10-24
 
-首个公开版本。
+首个公开版本（Python 实现）。
 
 ### 新增
 
@@ -37,4 +69,5 @@
 - `tests/verify.py`：45 条断言，覆盖五种规则类型、编码写回、xlsx 数值/日期/公式、嵌套递归、隐藏目录
 - GitHub Actions：ubuntu-latest 3.10 / 3.13、windows-latest 3.12
 
+[0.2.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.2.0
 [0.1.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.1.0
