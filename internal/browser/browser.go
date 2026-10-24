@@ -14,3 +14,6 @@ var ErrNoGUI = errors.New("未检测到图形环境")
 
 // FileURL 把本地路径转成 file:// URL。
 func FileURL(path string) string { return fileurl.Of(path) }
+
+// OpenFile 用系统默认程序打开本地文件。
+func OpenFile(path string) error { return OpenURL(FileURL(path)) }

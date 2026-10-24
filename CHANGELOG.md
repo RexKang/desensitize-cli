@@ -2,6 +2,29 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)，格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.5.0] - 2026-10-24
+
+加了本机图形界面（`desensitize gui`），只读：配置规则、空跑预演、保存 rules.json。
+
+### 新增
+
+- **`desensitize gui`**：在 127.0.0.1 起本机页面并自动打开浏览器
+  - 随机端口 + 一次性 token（`X-Token` 头或 `?t=`），别的进程/网页访问返回 401
+  - 页面每 4 秒心跳，关掉 12 秒后进程自动退出；`--keep-alive` 可关掉这个行为
+  - `--port` 指定端口，`--rules` 指定规则文件
+- 页面能力：规则库增删改、启用开关、内置案例一键载入、空跑预演（带上下文与命中数）、保存 rules.json
+- 保存时自动留 `rules.json.<时间戳>.bak`；文件被外部改过返回 409 冲突，不覆盖
+- `/api/state`、`/api/preview`、`/api/rules`、`/api/ping`、`/api/quit` 五个接口，全部要 token
+
+### 变更
+
+- `files.ProcessXLSX` 增加 `dry` 参数：预演时连临时文件都不落
+- `browser` 包新增 `OpenURL`，打开 http 地址与本地文件走同一套平台分支
+
+### 工程
+
+- `internal/gui` 测试：token 校验、页面下发、状态、预演只读、非法规则、保存备份、mtime 冲突、心跳与退出、token 随机性
+
 ## [未发布]
 
 ### 变更
@@ -117,6 +140,7 @@
 - `tests/verify.py`：45 条断言，覆盖五种规则类型、编码写回、xlsx 数值/日期/公式、嵌套递归、隐藏目录
 - GitHub Actions：ubuntu-latest 3.10 / 3.13、windows-latest 3.12
 
+[0.5.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.5.0
 [0.4.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.4.0
 [0.3.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.3.0
 [0.2.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.2.0

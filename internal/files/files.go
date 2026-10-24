@@ -190,8 +190,8 @@ func LineOf(starts []int, off int) int {
 	return sort.SearchInts(starts, off+1)
 }
 
-// ProcessXLSX 处理 xlsx/xlsm。
-func ProcessXLSX(path string, rs []*rules.Rule, stats *Stats) (*Pending, error) {
+// ProcessXLSX 处理 xlsx/xlsm。dry 为真时只算不落盘（界面预演用）。
+func ProcessXLSX(path string, rs []*rules.Rule, stats *Stats, dry bool) (*Pending, error) {
 	f, err := excelize.OpenFile(path)
 	if err != nil {
 		return nil, err
@@ -266,6 +266,10 @@ func ProcessXLSX(path string, rs []*rules.Rule, stats *Stats) (*Pending, error) 
 	}
 	for _, w := range xlsxRisks(path) {
 		notes = append(notes, w)
+	}
+
+	if dry {
+		return &Pending{Path: path, Hits: hits, Notes: notes}, nil
 	}
 
 	ext := filepath.Ext(path)

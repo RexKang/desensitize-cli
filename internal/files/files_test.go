@@ -113,7 +113,7 @@ func TestProcessXLSX(t *testing.T) {
 	}
 	_ = f.Close()
 
-	pd, err := ProcessXLSX(path, rs, NewStats())
+	pd, err := ProcessXLSX(path, rs, NewStats(), false)
 	if err != nil || pd == nil {
 		t.Fatalf("xlsx 处理失败: %v", err)
 	}

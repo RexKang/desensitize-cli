@@ -21,6 +21,7 @@ import (
 
 	"github.com/RexKang/desensitize-cli/internal/browser"
 	"github.com/RexKang/desensitize-cli/internal/files"
+	"github.com/RexKang/desensitize-cli/internal/gui"
 	"github.com/RexKang/desensitize-cli/internal/presets"
 	"github.com/RexKang/desensitize-cli/internal/report"
 	"github.com/RexKang/desensitize-cli/internal/rules"
@@ -56,6 +57,9 @@ type options struct {
 }
 
 func run(args []string, out io.Writer, in io.Reader) int {
+	if len(args) > 0 && args[0] == "gui" {
+		return runGUI(args[1:], out)
+	}
 	p := &printer{w: out}
 	opts, code := parseArgs(args, p)
 	if code >= 0 {
@@ -111,7 +115,7 @@ func run(args []string, out io.Writer, in io.Reader) int {
 		var pd *files.Pending
 		var err error
 		if files.IsXLSX(f) {
-			pd, err = files.ProcessXLSX(f, rs, stats)
+			pd, err = files.ProcessXLSX(f, rs, stats, opts.dryRun)
 		} else {
 			pd, err = files.ProcessText(f, rs, stats)
 		}
@@ -299,6 +303,72 @@ func parseArgs(args []string, p *printer) (options, int) {
 	return o, -1
 }
 
+// runGUI 起本机界面：路由在 internal/gui，这里只负责参数、打开浏览器、等退出。
+func runGUI(args []string, out io.Writer) int {
+	p := &printer{w: out}
+	fs := flag.NewFlagSet("gui", flag.ContinueOnError)
+	var usage bytes.Buffer
+	fs.SetOutput(&usage)
+	rulesPath := fs.String("rules", "", "规则文件（默认同目录 rules.json）")
+	port := fs.Int("port", 0, "监听端口，0 表示随机")
+	noOpen := fs.Bool("no-open", false, "不自动打开浏览器")
+	keepAlive := fs.Bool("keep-alive", false, "页面关掉后不退出（默认心跳停了就退）")
+
+	if err := fs.Parse(permute(args)); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			p.w.Write(usage.Bytes())
+			return 0
+		}
+		p.line("参数错误：%v", err)
+		p.w.Write(usage.Bytes())
+		return 2
+	}
+
+	path, autoCopy, err := resolveRules(*rulesPath)
+	if err != nil {
+		p.line("%v", err)
+		return 1
+	}
+	if _, err := os.Stat(path); err != nil && autoCopy {
+		sample := filepath.Join(filepath.Dir(path), "rules.sample.json")
+		if data, e := os.ReadFile(sample); e == nil {
+			_ = os.WriteFile(path, data, 0o644)
+			p.line("没找到 %s，已从 rules.sample.json 复制一份。", filepath.Base(path))
+		}
+	}
+
+	srv, err := gui.New(gui.Options{
+		RulesPath: path, Port: *port, KeepAlive: *keepAlive, Version: version,
+	})
+	if err != nil {
+		p.line("%v", err)
+		return 1
+	}
+	if err := srv.Start(); err != nil {
+		p.line("%v", err)
+		return 1
+	}
+	defer srv.Close()
+
+	p.line("界面已启动：%s", srv.Addr())
+	p.line("地址里带一次性 token，换成本机别的地址会 401；页面关掉 12 秒后自动退出（--keep-alive 可关掉）。")
+
+	if !*noOpen && isInteractive() {
+		if err := browser.OpenURL(srv.URL()); err != nil {
+			p.line("没能自动打开浏览器，请手动访问：%s", srv.URL())
+		}
+	} else {
+		p.line("打开这个地址：%s", srv.URL())
+	}
+
+	if err := srv.Wait(); err != nil {
+		p.line("服务异常退出：%v", err)
+		return 1
+	}
+	p.line("已退出。")
+	return 0
+}
+
 // resolveRules 定位规则文件：显式路径 > 可执行文件同目录 > 当前目录。
 func resolveRules(explicit string) (path string, autoCopy bool, err error) {
 	if explicit != "" {
@@ -333,7 +403,7 @@ func resolveRules(explicit string) (path string, autoCopy bool, err error) {
 func permute(args []string) []string {
 	valued := map[string]bool{
 		"rules": true, "report": true, "samples": true, "list-files": true, "top": true,
-		"preset": true, "backup": true,
+		"preset": true, "backup": true, "port": true,
 	}
 	var flags, rest []string
 	for i := 0; i < len(args); i++ {
