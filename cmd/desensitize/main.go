@@ -8,6 +8,8 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -40,7 +42,7 @@ type options struct {
 	recursive  bool
 	dryRun     bool
 	yes        bool
-	noBackup   bool
+	backupMode string
 	reportPath string
 	open       bool
 	noOpen     bool
@@ -178,16 +180,38 @@ func run(args []string, out io.Writer, in io.Reader) int {
 		}
 	}
 
+	if opts.backupMode == files.BackupModeZip {
+		for _, t := range opts.targets {
+			zp, err := files.BackupZip(t)
+			if err != nil {
+				p.line("整体备份失败，已中止，未写入任何文件：%v", err)
+				return 1
+			}
+			size := int64(0)
+			if info, err := os.Stat(zp); err == nil {
+				size = info.Size()
+			}
+			p.line("整体备份：%s（%s）", zp, files.HumanSize(size))
+		}
+	}
+
 	written, failed := 0, 0
 	for _, pd := range pending {
-		if err := pd.Write(!opts.noBackup); err != nil {
+		if err := pd.Write(opts.backupMode == files.BackupModeFile); err != nil {
 			p.line("  写入失败 %s: %v", pd.Path, err)
 			failed++
 			continue
 		}
 		written++
 	}
-	p.line("已写入 %d 个文件（%d 处替换），备份后缀 .<时间戳>.bak。", written, totalHits)
+	switch opts.backupMode {
+	case files.BackupModeFile:
+		p.line("已写入 %d 个文件（%d 处替换），备份后缀 .<时间戳>.bak。", written, totalHits)
+	case files.BackupModeZip:
+		p.line("已写入 %d 个文件（%d 处替换），原件在上层目录的 .bak.zip 里。", written, totalHits)
+	default:
+		p.line("已写入 %d 个文件（%d 处替换），未做备份。", written, totalHits)
+	}
 	if failed > 0 {
 		p.line("有 %d 个文件写入失败，原文件未改动。", failed)
 		return 1
@@ -205,7 +229,8 @@ func notesOf(pd *files.Pending) []string {
 func parseArgs(args []string, p *printer) (options, int) {
 	var o options
 	fs := flag.NewFlagSet("desensitize", flag.ContinueOnError)
-	fs.SetOutput(io.Discard)
+	var usage bytes.Buffer
+	fs.SetOutput(&usage)
 	fs.StringVar(&o.rulesPath, "rules", "", "规则文件（默认同目录 rules.json）")
 	fs.BoolVar(&o.recursive, "recursive", true, "递归子目录（默认开启）")
 	noRec := fs.Bool("no-recursive", false, "只看目标目录第一层")
@@ -213,7 +238,8 @@ func parseArgs(args []string, p *printer) (options, int) {
 	fs.BoolVar(&o.dryRun, "dry-run", false, "只预演，不写入")
 	fs.BoolVar(&o.yes, "y", false, "跳过确认直接写入")
 	fs.BoolVar(&o.yes, "yes", false, "跳过确认直接写入")
-	fs.BoolVar(&o.noBackup, "no-backup", false, "不生成 .bak 备份（不建议）")
+	fs.StringVar(&o.backupMode, "backup", files.BackupModeFile, "备份方式：file 逐文件 .bak / zip 整体打包到上层目录 / none 不备份")
+	noBackup := fs.Bool("no-backup", false, "等价于 --backup=none（不建议）")
 	fs.StringVar(&o.reportPath, "report", "", "导出明细：.html / .csv / 其它存 JSON")
 	fs.BoolVar(&o.open, "open", false, "处理完后自动打开 HTML 报告（无报告时生成临时报告）")
 	fs.BoolVar(&o.noOpen, "no-open", false, "不自动打开浏览器")
@@ -226,13 +252,40 @@ func parseArgs(args []string, p *printer) (options, int) {
 	fs.BoolVar(&o.listPreset, "list-presets", false, "列出内置案例后退出")
 	showVersion := fs.Bool("version", false, "打印版本")
 
+	fs.Usage = func() {
+		fmt.Fprint(&usage, `用法: desensitize [选项] <文件或目录>...
+
+示例:
+  desensitize ./测试数据 --dry-run
+  desensitize ./测试数据 --report 明细.html
+  desensitize ./hosts --preset network --backup zip --yes
+
+选项:
+`)
+		fs.PrintDefaults()
+	}
+
 	if err := fs.Parse(permute(args)); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			p.w.Write(usage.Bytes())
+			return o, 0
+		}
 		p.line("参数错误：%v", err)
-		p.line("用法: desensitize [选项] <文件或目录>...")
+		p.w.Write(usage.Bytes())
 		return o, 2
 	}
+
 	if *noRec {
 		o.recursive = false
+	}
+	if *noBackup {
+		o.backupMode = files.BackupModeNone
+	}
+	switch o.backupMode {
+	case files.BackupModeFile, files.BackupModeZip, files.BackupModeNone:
+	default:
+		p.line("--backup 只能是 file / zip / none，收到 %q", o.backupMode)
+		return o, 2
 	}
 	if *showVersion {
 		p.line("desensitize %s", version)
@@ -280,7 +333,7 @@ func resolveRules(explicit string) (path string, autoCopy bool, err error) {
 func permute(args []string) []string {
 	valued := map[string]bool{
 		"rules": true, "report": true, "samples": true, "list-files": true, "top": true,
-		"preset": true,
+		"preset": true, "backup": true,
 	}
 	var flags, rest []string
 	for i := 0; i < len(args); i++ {

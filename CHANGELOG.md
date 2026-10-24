@@ -2,6 +2,30 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)，格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.4.0] - 2026-10-24
+
+备份从「只能逐文件」升级成可选方式，并补上整体打包；同时修掉了几个界面设计里暴露出来的语义问题。
+
+### 新增
+
+- **`--backup file|zip|none`**
+  - `file`（默认）：同目录 `原文件名.<时间戳>.bak`
+  - `zip`：在上层目录打成 `名称.<时间戳>.bak.zip`，按上层目录为根，解压即还原
+  - `none`：不备份，确认提示会明确写「没有备份，无法回滚」
+- 整体打包失败即中止，**一个文件都不写**（退出码 1）
+- 备份包与中间产物统一排除在扫描之外（名字里带 `.bak` 或 `.desensitize.tmp`），打包时也跳过旧备份
+
+### 变更
+
+- `--no-backup` 保留为 `--backup none` 的别名
+
+- 补上 `-h/--help`：列出全部开关与三个示例，退出码 0（此前会把 help 当成参数错误）
+
+### 工程
+
+- `internal/files/backup.go`：`BackupZip` / `HumanSize`，`zip.Deflate` 打包，目录与单文件都支持
+- 测试：备份包条目与内容、旧备份不进新包、单文件打包、临时文件排除、三种模式在 CLI 上的行为、备份包不会被当成待处理文件
+
 ## [0.3.0] - 2026-10-24
 
 内置案例库：11 个真实场景，带示例数据，可直接跑也可作为规则起点。为下一版 GUI 的左侧「案例」页签做准备。
@@ -86,6 +110,7 @@
 - `tests/verify.py`：45 条断言，覆盖五种规则类型、编码写回、xlsx 数值/日期/公式、嵌套递归、隐藏目录
 - GitHub Actions：ubuntu-latest 3.10 / 3.13、windows-latest 3.12
 
+[0.4.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.4.0
 [0.3.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.3.0
 [0.2.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.2.0
 [0.1.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.1.0
