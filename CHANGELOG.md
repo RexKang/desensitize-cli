@@ -2,6 +2,23 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)，格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.3.0] - 2026-10-24
+
+内置案例库：11 个真实场景，带示例数据，可直接跑也可作为规则起点。为下一版 GUI 的左侧「案例」页签做准备。
+
+### 新增
+
+- **`--list-presets`**：列出内置案例（id / 场景 / 规则数 / 风险等级 / 说明）
+- **`--preset <id>`**：用某个案例的规则直接跑，不用写 `rules.json`
+- **11 个案例**：变更单 / Excel 需求调查表 / 网络配置 / 日志告警 / 接口测试数据 / 客户名单 / 配置密钥 / 主机名清单 / 审计记录 / 车牌号 / 工号编号（默认关闭）
+- 每个案例带一段**示例文本**与一段 `note`（写清误伤面与不可重跑等注意事项），案例随二进制内置（`go:embed`）
+- **明确点名的无扩展名文件**（`hosts`、`sshd_config`）按文本处理，编码认不出来才跳过
+
+### 工程
+
+- `internal/rules` 拆出 `Parse`（从内存解析）与 `Compile`（编译单条规则），新增 `Clone`（拷贝规则切片，避免界面改到共享对象）
+- `internal/presets` 测试：案例唯一性、字段完整性、每条规则可编译、**每个案例的示例都必须真的被改掉**、逐案例的期望结果断言、高危案例默认关闭
+
 ## [0.2.0] - 2026-10-24
 
 改用 Go 重写，单个可执行文件跑起来不需要 Python 环境；行为与 0.1.0 逐字节对齐（同样的 `rules.json`、
@@ -69,5 +86,6 @@
 - `tests/verify.py`：45 条断言，覆盖五种规则类型、编码写回、xlsx 数值/日期/公式、嵌套递归、隐藏目录
 - GitHub Actions：ubuntu-latest 3.10 / 3.13、windows-latest 3.12
 
+[0.3.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.3.0
 [0.2.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.2.0
 [0.1.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.1.0

@@ -52,6 +52,8 @@ desensitize ./测试数据 --report 明细.html
 | 生成临时报告并打开 | `--open` |
 | 不要自动开浏览器 | `--no-open` |
 | 打印当前生效规则 | `--dump-rules` |
+| 看有哪些内置案例 | `--list-presets` |
+| 直接用某个案例跑 | `--preset network` |
 | 免交互（脚本里用） | `--yes` |
 
 退出码：`0` 成功 / `1` 没找到可处理文件、规则文件不存在 / `2` 参数错误 / `3` 未确认 / `4` 没有命中。
@@ -121,6 +123,34 @@ IPv4      9      3     10.1.2.3  →  203.8.9.10
 | `L14` / `工单!C2` | 文本给行号；xlsx 给 `sheet!单元格` |
 | `… 另有 N 处未显示` | 该文件还有命中没展开（`--samples` 控制每文件每规则条数） |
 | `10.` 这类短原文 | 终端只显示匹配到的片段，完整上下文看 `--report` 的上下文列 |
+
+## 内置案例库
+
+不想从零写正则时，直接挑一个案例跑：
+
+```bash
+desensitize --list-presets                # 看有哪些
+desensitize ./测试数据 --preset ticket --dry-run
+desensitize ./hosts --preset network --yes
+```
+
+| id | 场景 | 规则 | 风险 |
+|---|---|---|---|
+| `ticket` | 变更单 / 工单 | 手机、邮箱、工单号前缀删除、主机名哈希 | 低 |
+| `excel-form` | Excel 需求调查表 | 手机、邮箱、身份证、内网 IP | 低 |
+| `network` | 网络配置 / hosts | 私网 IP 位移、主机名哈希 | 中 |
+| `logs` | 日志与告警 | 手机、邮箱、IP、trace id | 低 |
+| `api-json` | 接口测试数据 | 手机、邮箱、身份证、银行卡（留后 4 位） | 中 |
+| `contact` | 客户 / 供应商名单 | 手机、带区号固话、邮箱 | 低 |
+| `config` | 配置与密钥 | password/token/api_key 的值、内网 IP | 中 |
+| `hostname` | 主机名清单 | 主机名哈希、私网 IP 位移 | 中 |
+| `audit` | 审计记录 | IP、主机名、手机 | 中 |
+| `plate` | 车牌号 | 中国大陆车牌 | 低 |
+| `serial` | 工号 / 编号 | 定长 8 位数字，**默认关闭** | 高 |
+
+每个案例都带一段示例文本，界面上点开就能看到「这套规则在这段脏数据上会改成什么」；案例本身也随二进制内置，随时能导出成 `rules.json`。
+
+明确点名的无扩展名文件（`hosts`、`sshd_config` 这类）按文本处理；编码认不出来会跳过并提示。
 
 ## 规则
 
@@ -241,6 +271,7 @@ desensitize-cli/
 │   ├── rules/                规则模型、匹配、模板、ip_shift、hash
 │   ├── mask/                 引擎：多规则合并成一次改写
 │   ├── files/                编码、文本/xlsx 处理、目录发现、统计
+│   ├── presets/              内置案例库（presets.json + 校验）
 │   ├── report/               HTML / CSV / JSON 报告
 │   ├── browser/              各平台打开本地文件（构建标签分文件）
 │   └── fileurl/              file:/// URL 生成

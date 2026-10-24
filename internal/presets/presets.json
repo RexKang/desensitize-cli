@@ -1,0 +1,157 @@
+{
+  "version": "0.3.0",
+  "_comment": "内置案例库。每个案例 = 一组规则 + 一段示例文本，点开就能看到会改成什么。规则字段与 rules.json 完全一致，可直接导出成自己的规则文件。",
+  "presets": [
+    {
+      "id": "ticket",
+      "name": "变更单 / 工单",
+      "desc": "联系人手机、邮箱、工单号前缀、主机名",
+      "tags": ["运维", "文档"],
+      "risk": "低",
+      "note": "工单号按字面前缀删除，正文里同名串也会一起去掉，预览确认后再落盘",
+      "sample": "变更单 TCK-2026-0001\n申请人 13800138000\n邮箱 ops@example.com\n主机 host-web01",
+      "rules": [
+        {"id": "mobile", "desc": "手机号", "type": "regex", "pattern": "1[3-9]\\d{9}", "digit_boundary": true, "replace": "{stars}", "enabled": true},
+        {"id": "email", "desc": "邮箱", "type": "regex", "pattern": "[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}", "replace": "user@example.com", "enabled": true},
+        {"id": "ticket", "desc": "工单号前缀", "type": "literal", "find": "TCK-", "replace": "", "enabled": true},
+        {"id": "host", "desc": "主机名", "type": "hash", "pattern": "host-[a-z]{2,6}\\d{2,4}", "keep_tail": 2, "replace": "", "enabled": true}
+      ]
+    },
+    {
+      "id": "excel-form",
+      "name": "Excel 需求调查表",
+      "desc": "联系人手机、邮箱、身份证、内网 IP",
+      "tags": ["Excel", "运营"],
+      "risk": "低",
+      "note": "xlsx 回写会保留公式与日期格；有图表/透视表的文件会先告警",
+      "sample": "联系人 13800138000\n邮箱 user@example.org\n证件 110101199001011234\n内网 10.1.2.3",
+      "rules": [
+        {"id": "mobile", "desc": "手机号", "type": "regex", "pattern": "1[3-9]\\d{9}", "digit_boundary": true, "replace": "{stars}", "enabled": true},
+        {"id": "email", "desc": "邮箱", "type": "regex", "pattern": "[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}", "replace": "user@example.com", "enabled": true},
+        {"id": "id_card", "desc": "身份证", "type": "regex", "pattern": "\\d{17}[\\dXx]", "digit_boundary": true, "replace": "{stars}", "enabled": true},
+        {"id": "ipv4", "desc": "IPv4", "type": "ip_shift", "first_octet": 203, "offset": 7, "source_cidrs": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"], "replace": "", "enabled": true}
+      ]
+    },
+    {
+      "id": "network",
+      "name": "网络配置 / hosts",
+      "desc": "私网 IP 按段位移，主机名定长哈希",
+      "tags": ["网络", "运维"],
+      "risk": "中",
+      "note": "ip_shift 不可重跑：对同一份文件再跑一次会二次位移，务必只跑一次",
+      "sample": "host-core01 10.1.2.3\nhost-edge02 192.168.1.20",
+      "rules": [
+        {"id": "ipv4", "desc": "IPv4", "type": "ip_shift", "first_octet": 203, "offset": 7, "source_cidrs": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"], "replace": "", "enabled": true},
+        {"id": "host", "desc": "主机名", "type": "hash", "pattern": "host-[a-z]{2,6}\\d{2,4}", "keep_tail": 2, "replace": "", "enabled": true}
+      ]
+    },
+    {
+      "id": "logs",
+      "name": "日志与告警",
+      "desc": "手机、邮箱、IP、插件 trace id",
+      "tags": ["日志", "排障"],
+      "risk": "低",
+      "note": "trace id 整体替换成固定占位，仍能看出这里有 trace，但无法回查原请求",
+      "sample": "2026-01-01T10:00:00Z WARN user=13800138000 ip=10.1.2.3 trace=3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+      "rules": [
+        {"id": "mobile", "desc": "手机号", "type": "regex", "pattern": "1[3-9]\\d{9}", "digit_boundary": true, "replace": "{stars}", "enabled": true},
+        {"id": "email", "desc": "邮箱", "type": "regex", "pattern": "[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}", "replace": "user@example.com", "enabled": true},
+        {"id": "ipv4", "desc": "IPv4", "type": "ip_shift", "first_octet": 203, "offset": 7, "source_cidrs": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"], "replace": "", "enabled": true},
+        {"id": "trace", "desc": "trace id", "type": "regex", "pattern": "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", "replace": "00000000-0000-0000-0000-000000000000", "enabled": true}
+      ]
+    },
+    {
+      "id": "api-json",
+      "name": "接口测试数据",
+      "desc": "JSON 里的手机、邮箱、身份证、银行卡",
+      "tags": ["测试", "接口"],
+      "risk": "中",
+      "note": "银行卡留后 4 位便于核对；身份证是 18 位，和 19 位卡号靠数字边界区分",
+      "sample": "{\"phone\":\"13800138000\",\"mail\":\"qa@example.com\",\"id\":\"110101199001011234\",\"card\":\"6222021234567890123\"}",
+      "rules": [
+        {"id": "mobile", "desc": "手机号", "type": "regex", "pattern": "1[3-9]\\d{9}", "digit_boundary": true, "replace": "{stars}", "enabled": true},
+        {"id": "email", "desc": "邮箱", "type": "regex", "pattern": "[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}", "replace": "user@example.com", "enabled": true},
+        {"id": "id_card", "desc": "身份证", "type": "regex", "pattern": "\\d{17}[\\dXx]", "digit_boundary": true, "replace": "{stars}", "enabled": true},
+        {"id": "bank_card", "desc": "银行卡", "type": "regex", "pattern": "\\d{16,19}", "digit_boundary": true, "replace": "{keep:4}", "enabled": true}
+      ]
+    },
+    {
+      "id": "contact",
+      "name": "客户 / 供应商名单",
+      "desc": "手机、带区号固话、邮箱",
+      "tags": ["业务", "名单"],
+      "risk": "低",
+      "note": "固话只认带区号的写法（010-88886666），纯 8 位数字不动，避免打掉编号",
+      "sample": "张三 13800138000\n李四 010-88886666\n王五 wang@example.com",
+      "rules": [
+        {"id": "mobile", "desc": "手机号", "type": "regex", "pattern": "1[3-9]\\d{9}", "digit_boundary": true, "replace": "{stars}", "enabled": true},
+        {"id": "landline", "desc": "固话", "type": "regex", "pattern": "0\\d{2,3}[- ]?\\d{7,8}", "digit_boundary": true, "replace": "{keep:4}", "enabled": true},
+        {"id": "email", "desc": "邮箱", "type": "regex", "pattern": "[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}", "replace": "user@example.com", "enabled": true}
+      ]
+    },
+    {
+      "id": "config",
+      "name": "配置与密钥",
+      "desc": "password / token / api_key 的值、内网 IP",
+      "tags": ["配置", "安全"],
+      "risk": "中",
+      "note": "只替换等号后面的值，键名保留，便于对照配置项；值里有空格或引号会截断，先预览",
+      "sample": "password = \"P@ssw0rd123\"\napi_key: abc123456789\nhost=10.1.2.3",
+      "rules": [
+        {"id": "secret", "desc": "密钥值", "type": "regex", "pattern": "(?i)(password|passwd|secret|token|api[_-]?key)(\\s*[:=]\\s*)[\"']?[A-Za-z0-9_\\-!@#$%^&*.]{6,}", "replace": "{g1}{g2}***", "enabled": true},
+        {"id": "ipv4", "desc": "IPv4", "type": "ip_shift", "first_octet": 203, "offset": 7, "source_cidrs": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"], "replace": "", "enabled": true}
+      ]
+    },
+    {
+      "id": "hostname",
+      "name": "主机名清单",
+      "desc": "主机名前段哈希、私网 IP 位移",
+      "tags": ["运维", "资产"],
+      "risk": "中",
+      "note": "哈希保留尾号，能看出 0001/0002 是同一批机器；salt 留空时不同项目之间可能撞车",
+      "sample": "host-web01 10.1.2.3\nhost-db02 192.168.1.20",
+      "rules": [
+        {"id": "host", "desc": "主机名", "type": "hash", "pattern": "host-[a-z]{2,6}\\d{2,4}", "keep_tail": 2, "replace": "", "enabled": true},
+        {"id": "ipv4", "desc": "IPv4", "type": "ip_shift", "first_octet": 203, "offset": 7, "source_cidrs": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"], "replace": "", "enabled": true}
+      ]
+    },
+    {
+      "id": "audit",
+      "name": "审计记录",
+      "desc": "IP、主机名、联系人手机",
+      "tags": ["审计", "运维"],
+      "risk": "中",
+      "note": "账号名（admin 之类）不在这里动：误伤面太大，真有需要单独加 literal 规则",
+      "sample": "2026-01-01 10:00 admin 10.1.2.3 host-web01 联系人 13800138000",
+      "rules": [
+        {"id": "ipv4", "desc": "IPv4", "type": "ip_shift", "first_octet": 203, "offset": 7, "source_cidrs": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"], "replace": "", "enabled": true},
+        {"id": "host", "desc": "主机名", "type": "hash", "pattern": "host-[a-z]{2,6}\\d{2,4}", "keep_tail": 2, "replace": "", "enabled": true},
+        {"id": "mobile", "desc": "手机号", "type": "regex", "pattern": "1[3-9]\\d{9}", "digit_boundary": true, "replace": "{stars}", "enabled": true}
+      ]
+    },
+    {
+      "id": "plate",
+      "name": "车牌号",
+      "desc": "中国大陆车牌（含新能源、挂/学/警/港/澳）",
+      "tags": ["业务", "文档"],
+      "risk": "低",
+      "note": "只认标准七位车牌；车主姓名、车型不在规则范围内",
+      "sample": "京A12345 停放于 A 区，粤B8888D 已离场",
+      "rules": [
+        {"id": "plate", "desc": "车牌", "type": "regex", "pattern": "[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼][A-HJ-NP-Z][A-HJ-NP-Z0-9]{4}[A-HJ-NP-Z0-9挂学警港澳]", "replace": "{head:2}*****", "enabled": true}
+      ]
+    },
+    {
+      "id": "serial",
+      "name": "工号 / 编号（谨慎）",
+      "desc": "定长 8 位数字，默认关闭",
+      "tags": ["业务", "高危"],
+      "risk": "高",
+      "note": "纯位数匹配最容易误伤：日期、参数值、权限码都会中。默认停用，先用 --top 看最高频命中值再决定",
+      "sample": "工号 10000086 参数 10000000 日期 20260101",
+      "rules": [
+        {"id": "serial", "desc": "8位编号", "type": "digits", "length": 8, "skip_valid_date": true, "replace": "{keep:4}", "enabled": false}
+      ]
+    }
+  ]
+}

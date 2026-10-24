@@ -431,6 +431,10 @@ func Discover(targets []string, recursive bool) (out []string, problems []string
 			add(t)
 		case ext == ".xls":
 			xlsSkipped = append(xlsSkipped, t)
+		case ext == "":
+			// 明确点名的无扩展名文件按文本处理：hosts、sshd_config 这类配置文件
+			// 正是要脱敏的对象；真是二进制的话，编码探测那步会拒绝并记进提示
+			add(t)
 		default:
 			problems = append(problems, fmt.Sprintf("%s 类型不支持（%s）", t, ext))
 		}

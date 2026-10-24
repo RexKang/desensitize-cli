@@ -19,6 +19,7 @@ import (
 
 	"github.com/RexKang/desensitize-cli/internal/browser"
 	"github.com/RexKang/desensitize-cli/internal/files"
+	"github.com/RexKang/desensitize-cli/internal/presets"
 	"github.com/RexKang/desensitize-cli/internal/report"
 	"github.com/RexKang/desensitize-cli/internal/rules"
 	"golang.org/x/text/width"
@@ -48,6 +49,8 @@ type options struct {
 	all        bool
 	top        int
 	dumpRules  bool
+	preset     string
+	listPreset bool
 }
 
 func run(args []string, out io.Writer, in io.Reader) int {
@@ -57,15 +60,32 @@ func run(args []string, out io.Writer, in io.Reader) int {
 		return code
 	}
 
-	rulesPath, autoCopy, err := resolveRules(opts.rulesPath)
-	if err != nil {
-		p.line("%v", err)
-		return 1
+	if opts.listPreset {
+		listPresets(p)
+		return 0
 	}
-	rs, _, err := loadRules(rulesPath, autoCopy, p)
-	if err != nil {
-		p.line("%v", err)
-		return 1
+
+	var rs []*rules.Rule
+	if opts.preset != "" {
+		ps, ok := presets.Get(opts.preset)
+		if !ok {
+			p.line("没有这个内置案例：%s（用 --list-presets 看可选值）", opts.preset)
+			return 1
+		}
+		rs = rules.Clone(ps.Rules)
+		p.line("使用内置案例「%s」%d 条规则（%s）", ps.Name, len(ps.Rules), ps.Risk+"风险")
+	} else {
+		rulesPath, autoCopy, err := resolveRules(opts.rulesPath)
+		if err != nil {
+			p.line("%v", err)
+			return 1
+		}
+		var err2 error
+		rs, _, err2 = loadRules(rulesPath, autoCopy, p)
+		if err2 != nil {
+			p.line("%v", err2)
+			return 1
+		}
 	}
 	if opts.dumpRules {
 		dumpRules(rs, p)
@@ -202,6 +222,8 @@ func parseArgs(args []string, p *printer) (options, int) {
 	fs.BoolVar(&o.all, "all", false, "终端里展开全部文件与目录")
 	fs.IntVar(&o.top, "top", 0, "额外列出每规则最高频命中值前 N 个")
 	fs.BoolVar(&o.dumpRules, "dump-rules", false, "打印生效规则后退出")
+	fs.StringVar(&o.preset, "preset", "", "用内置案例的规则（见 --list-presets），忽略 --rules")
+	fs.BoolVar(&o.listPreset, "list-presets", false, "列出内置案例后退出")
 	showVersion := fs.Bool("version", false, "打印版本")
 
 	if err := fs.Parse(permute(args)); err != nil {
@@ -217,7 +239,7 @@ func parseArgs(args []string, p *printer) (options, int) {
 		return o, 0
 	}
 	o.targets = fs.Args()
-	if len(o.targets) == 0 {
+	if len(o.targets) == 0 && !o.listPreset && !o.dumpRules {
 		p.line("至少给一个文件或目录。用法: desensitize [选项] <文件或目录>...")
 		return o, 2
 	}
@@ -258,6 +280,7 @@ func resolveRules(explicit string) (path string, autoCopy bool, err error) {
 func permute(args []string) []string {
 	valued := map[string]bool{
 		"rules": true, "report": true, "samples": true, "list-files": true, "top": true,
+		"preset": true,
 	}
 	var flags, rest []string
 	for i := 0; i < len(args); i++ {
@@ -291,6 +314,24 @@ func loadRules(path string, autoCopy bool, p *printer) ([]*rules.Rule, rules.Doc
 		}
 	}
 	return rules.Load(path)
+}
+
+func listPresets(p *printer) {
+	list, err := presets.All()
+	if err != nil {
+		p.line("%v", err)
+		return
+	}
+	p.line("内置案例库 v%s · %d 个（--preset <id> 直接使用）", presets.Version, len(list))
+	for _, x := range list {
+		enabled := 0
+		for _, r := range x.Rules {
+			if r.IsEnabled() {
+				enabled++
+			}
+		}
+		p.line("  %-12s %-18s [%s风险] %d 规则（启用 %d）  %s", x.ID, x.Name, x.Risk, len(x.Rules), enabled, x.Desc)
+	}
 }
 
 func dumpRules(rs []*rules.Rule, p *printer) {
@@ -328,9 +369,8 @@ func absPath(p string) string {
 // 这样 desensitize ./测试数据 显示的是 测试数据/a.txt，而不是一长串绝对路径。
 func relBase(targets []string) string {
 	if len(targets) == 1 {
-		if info, err := os.Stat(targets[0]); err == nil && info.IsDir() {
-			return filepath.Dir(absPath(targets[0]))
-		}
+		// 单目录用父目录、单文件用所在目录，显示才是「测试数据.txt」这种
+		return filepath.Dir(absPath(targets[0]))
 	}
 	if cwd, err := os.Getwd(); err == nil {
 		return cwd

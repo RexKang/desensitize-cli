@@ -88,6 +88,11 @@ func Load(path string) ([]*Rule, Docs, error) {
 	if err != nil {
 		return nil, nil, fmt.Errorf("读取规则文件失败: %w", err)
 	}
+	return Parse(raw)
+}
+
+// Parse 从内存里的 JSON 解析规则，供 embed 数据与测试使用。
+func Parse(raw []byte) ([]*Rule, Docs, error) {
 	raw = []byte(strings.TrimPrefix(string(raw), "\ufeff"))
 
 	var arr []*Rule
@@ -101,7 +106,7 @@ func Load(path string) ([]*Rule, Docs, error) {
 		arr = obj.Rules
 	}
 	if len(arr) == 0 {
-		return nil, nil, fmt.Errorf("规则文件里没有规则: %s", path)
+		return nil, nil, fmt.Errorf("规则里没有任何条目")
 	}
 
 	var meta Docs
@@ -113,7 +118,7 @@ func Load(path string) ([]*Rule, Docs, error) {
 
 	for i, r := range arr {
 		r.Index = i
-		if err := r.prepare(); err != nil {
+		if err := r.Compile(); err != nil {
 			name := r.ID
 			if name == "" {
 				name = fmt.Sprintf("#%d", i+1)
@@ -124,7 +129,8 @@ func Load(path string) ([]*Rule, Docs, error) {
 	return arr, meta, nil
 }
 
-func (r *Rule) prepare() error {
+// Compile 编译规则的正则/网段等内部状态。Load 会自动调用；外部（如内置预设）自行调用。
+func (r *Rule) Compile() error {
 	switch r.Type {
 	case TypeLiteral:
 		if r.Find == "" {
@@ -192,6 +198,20 @@ func (r *Rule) prepare() error {
 		return fmt.Errorf("未知 type: %q（可选 literal/regex/digits/ip_shift/hash）", r.Type)
 	}
 	return nil
+}
+
+// Clone 浅拷贝规则切片（正则与网段指针共享，本身不可变）。
+// 界面里编辑「规则库副本」或给案例临时开关时用它，避免改到共享对象。
+func Clone(rs []*Rule) []*Rule {
+	out := make([]*Rule, len(rs))
+	for i, r := range rs {
+		c := *r
+		if r.Offsets != nil {
+			c.Offsets = append([]*int(nil), r.Offsets...)
+		}
+		out[i] = &c
+	}
+	return out
 }
 
 // Match 是一次命中：字节区间 + 捕获组文本。
