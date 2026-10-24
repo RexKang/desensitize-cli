@@ -250,7 +250,7 @@ desensitize-cli/
 ```
 
 ```bash
-go test ./...        # 35 个测试函数：规则、引擎、编码、xlsx、发现、CLI 退出码、打开判断
+go test ./...        # 36 个测试函数：规则、引擎、编码、xlsx、发现、CLI 退出码、打开判断
 go vet ./...
 gofmt -l .           # 应无输出
 ```
