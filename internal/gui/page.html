@@ -490,7 +490,7 @@ function renderPreview(r) {
   sum.innerHTML = '';
   const line = document.createElement('div');
   line.className = 'hint';
-  line.textContent = r.files + ' 个文件 · ' + r.hits + ' 处 · ' + r.rows.length + ' 行明细'
+  line.textContent = '扫描 ' + r.files + ' 个文件 · 命中 ' + r.hits + ' 处 · ' + r.rows.length + ' 行明细'
     + (r.truncated ? '（已截断，先缩小范围）' : '');
   sum.append(line);
   (r.problems || []).slice(0, 5).forEach(p => {
@@ -505,19 +505,24 @@ function renderPreview(r) {
   wrap.style.display = 'block';
   wrap.innerHTML = '';
   const t = document.createElement('table');
-  t.innerHTML = '<thead><tr><th style="width:124px">文件 / 位置</th><th style="width:54px">规则</th><th>原文 → 替换后</th><th>上下文</th></tr></thead>';
+  t.innerHTML = '<thead><tr><th style="width:150px">文件 / 位置</th><th style="width:54px">规则</th><th>原文 → 替换后</th><th>上下文</th></tr></thead>';
   const tb = document.createElement('tbody');
   r.rows.forEach(x => {
     const tr = document.createElement('tr');
     const c1 = document.createElement('td');
-    c1.style.cssText = 'font-family:ui-monospace,Consolas,monospace;max-width:124px';
+    c1.style.cssText = 'font-family:ui-monospace,Consolas,monospace;max-width:150px';
+    const rel = x.file || '';
+    const seg = rel.split(/[\/]/);
+    const base = seg.pop() || '(未知)';
+    const dir = seg.join('/');
     const fname = document.createElement('div');
-    fname.style.cssText = 'font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
-    fname.textContent = (x.file || '').split(/[\/]/).pop() || '(未知)';
-    fname.title = x.file || '';
+    fname.style.cssText = 'font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    fname.textContent = base;
+    fname.title = rel;
     const floc = document.createElement('div');
-    floc.style.cssText = 'font-size:10px;color:#8b949e';
-    floc.textContent = x.loc || '';
+    floc.style.cssText = 'font-size:10px;color:#8b949e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    floc.textContent = (x.loc || '') + (dir ? ' · ' + dir : '');
+    floc.title = rel;
     c1.append(fname, floc);
     const c2 = document.createElement('td'); c2.textContent = x.rule;
     const c3 = document.createElement('td'); c3.style.fontSize = '11px';

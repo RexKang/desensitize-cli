@@ -2,6 +2,15 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)，格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.6.1] - 2026-10-24
+
+### 修复
+
+- 结果表第一列只显示截断后的相对路径（`样例数据\变更单.do...`），看不出是哪个文件；
+  改成文件名一行、位置+所在目录一行，完整路径进悬停提示
+- 汇总写成「3 个文件」容易和表里看得见的文件数对不上（那是扫描数，含没有命中的文件）；
+  改为「扫描 3 个文件 · 命中 4 处 · 4 行明细」
+
 ## [0.6.0] - 2026-10-24
 
 ### 新增
@@ -196,6 +205,7 @@
 - `tests/verify.py`：45 条断言，覆盖五种规则类型、编码写回、xlsx 数值/日期/公式、嵌套递归、隐藏目录
 - GitHub Actions：ubuntu-latest 3.10 / 3.13、windows-latest 3.12
 
+[0.6.1]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.6.1
 [0.6.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.6.0
 [0.5.3]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.5.3
 [0.5.2]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.5.2
