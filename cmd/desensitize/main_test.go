@@ -53,7 +53,7 @@ func TestDryRunDoesNotWrite(t *testing.T) {
 	if string(before) != string(after) {
 		t.Fatal("dry-run 不该改文件")
 	}
-	if !strings.Contains(out, "脱敏预演") || !strings.Contains(out, "规则汇总") {
+	if !strings.Contains(out, "空跑") || !strings.Contains(out, "规则汇总") {
 		t.Fatalf("汇总输出异常:\n%s", out)
 	}
 	for _, want := range []string{"手机号", "IPv4", "代号前缀", "工单号"} {

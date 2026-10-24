@@ -1,7 +1,7 @@
 // Command desensitize 是测试数据脱敏命令行工具。
 //
 // 输入：.txt / .md / .csv / .xlsx / .xlsm（旧版 .xls 不支持）
-// 流程：扫描 -> 预演汇总 -> 确认 -> 备份 -> 原地覆盖 -> 可自动打开 HTML 报告
+// 流程：扫描 -> 汇总 -> 确认 -> 备份 -> 原地覆盖 -> 可自动打开 HTML 报告（空跑只到汇总）
 //
 // 规则放在 rules.json（首次运行会自动从 rules.sample.json 复制一份）。
 package main
@@ -139,7 +139,7 @@ func run(args []string, out io.Writer, in io.Reader) int {
 		totalHits: totalHits, scanned: len(found), problems: problems, xls: xlsSkipped,
 	})
 
-	// 报告先落盘：预演阶段就能打开看，确认前不必写业务文件
+	// 报告先落盘：空跑阶段就能打开看，确认前不必写业务文件
 	reportPath := opts.reportPath
 	if reportPath == "" && opts.open {
 		reportPath = filepath.Join(os.TempDir(), "desensitize-"+time.Now().Format("20060102-150405")+".html")
@@ -161,7 +161,7 @@ func run(args []string, out io.Writer, in io.Reader) int {
 	}
 
 	if opts.dryRun {
-		p.line("--dry-run 已指定，未写入。")
+		p.line("空跑模式（--dry-run），未写入任何文件。")
 		return 0
 	}
 
@@ -234,11 +234,11 @@ func parseArgs(args []string, p *printer) (options, int) {
 	fs.StringVar(&o.rulesPath, "rules", "", "规则文件（默认同目录 rules.json）")
 	fs.BoolVar(&o.recursive, "recursive", true, "递归子目录（默认开启）")
 	noRec := fs.Bool("no-recursive", false, "只看目标目录第一层")
-	fs.BoolVar(&o.dryRun, "n", false, "只预演，不写入")
-	fs.BoolVar(&o.dryRun, "dry-run", false, "只预演，不写入")
+	fs.BoolVar(&o.dryRun, "n", false, "空跑：只算不写，不碰任何文件")
+	fs.BoolVar(&o.dryRun, "dry-run", false, "空跑：只算不写，不碰任何文件")
 	fs.BoolVar(&o.yes, "y", false, "跳过确认直接写入")
 	fs.BoolVar(&o.yes, "yes", false, "跳过确认直接写入")
-	fs.StringVar(&o.backupMode, "backup", files.BackupModeFile, "备份方式：file 逐文件 .bak / zip 整体打包到上层目录 / none 不备份")
+	fs.StringVar(&o.backupMode, "backup", files.BackupModeFile, "备份方式：zip 整体打包到上层目录 / file 逐文件 .bak / none 不备份")
 	noBackup := fs.Bool("no-backup", false, "等价于 --backup=none（不建议）")
 	fs.StringVar(&o.reportPath, "report", "", "导出明细：.html / .csv / 其它存 JSON")
 	fs.BoolVar(&o.open, "open", false, "处理完后自动打开 HTML 报告（无报告时生成临时报告）")
@@ -529,9 +529,9 @@ func printSummary(p *printer, s summarise) {
 
 	p.line("%s", line)
 	if s.opts.dryRun {
-		p.line("脱敏预演 · 未写入任何文件")
+		p.line("空跑 · 只算不写，未碰任何文件")
 	} else {
-		p.line("脱敏预演 · 确认后才会写入")
+		p.line("脱敏 · 确认后才会写入")
 	}
 	p.line("范围  %s", scope)
 	extra := ""
