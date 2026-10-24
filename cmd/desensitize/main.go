@@ -58,7 +58,11 @@ type options struct {
 
 func run(args []string, out io.Writer, in io.Reader) int {
 	if len(args) > 0 && args[0] == "gui" {
-		return runGUI(args[1:], out)
+		return runGUI(args[1:], out, in)
+	}
+	// 双击 exe 时没有任何参数：直接起界面，而不是甩一句「至少给一个文件」然后一闪而过
+	if len(args) == 0 && (isInteractive() || startedByExplorer()) {
+		return runGUI(nil, out, in)
 	}
 	p := &printer{w: out}
 	opts, code := parseArgs(args, p)
@@ -260,6 +264,7 @@ func parseArgs(args []string, p *printer) (options, int) {
 		fmt.Fprint(&usage, `用法: desensitize [选项] <文件或目录>...
 
 示例:
+  desensitize                                 （双击或直接运行 → 起图形界面）
   desensitize ./测试数据 --dry-run
   desensitize ./测试数据 --report 明细.html
   desensitize ./hosts --preset network --backup zip --yes
@@ -304,7 +309,7 @@ func parseArgs(args []string, p *printer) (options, int) {
 }
 
 // runGUI 起本机界面：路由在 internal/gui，这里只负责参数、打开浏览器、等退出。
-func runGUI(args []string, out io.Writer) int {
+func runGUI(args []string, out io.Writer, in io.Reader) int {
 	p := &printer{w: out}
 	fs := flag.NewFlagSet("gui", flag.ContinueOnError)
 	var usage bytes.Buffer
@@ -329,11 +334,17 @@ func runGUI(args []string, out io.Writer) int {
 		p.line("%v", err)
 		return 1
 	}
-	if _, err := os.Stat(path); err != nil && autoCopy {
-		sample := filepath.Join(filepath.Dir(path), "rules.sample.json")
-		if data, e := os.ReadFile(sample); e == nil {
-			_ = os.WriteFile(path, data, 0o644)
-			p.line("没找到 %s，已从 rules.sample.json 复制一份。", filepath.Base(path))
+	// 界面不依赖已存在的规则文件：没有就空规则起，用户从内置案例挑一套再保存。
+	// 命令行才需要规则文件，缺了直接报错。
+	if _, err := os.Stat(path); err != nil {
+		if autoCopy {
+			sample := filepath.Join(filepath.Dir(path), "rules.sample.json")
+			if data, e := os.ReadFile(sample); e == nil {
+				_ = os.WriteFile(path, data, 0o644)
+				p.line("没找到 %s，已从 rules.sample.json 复制一份。", filepath.Base(path))
+			} else {
+				p.line("还没有 %s，先按空规则启动；左边挑一个案例就有规则了。", filepath.Base(path))
+			}
 		}
 	}
 
@@ -346,6 +357,7 @@ func runGUI(args []string, out io.Writer) int {
 	}
 	if err := srv.Start(); err != nil {
 		p.line("%v", err)
+		pauseForDoubleClick(in, out)
 		return 1
 	}
 	defer srv.Close()
@@ -353,12 +365,19 @@ func runGUI(args []string, out io.Writer) int {
 	p.line("界面已启动：%s", srv.Addr())
 	p.line("地址里带一次性 token，换成本机别的地址会 401；页面关掉 12 秒后自动退出（--keep-alive 可关掉）。")
 
+	opened := false
 	if !*noOpen && isInteractive() {
-		if err := browser.OpenURL(srv.URL()); err != nil {
+		if err := browser.OpenURL(srv.URL()); err == nil {
+			opened = true
+		} else {
 			p.line("没能自动打开浏览器，请手动访问：%s", srv.URL())
 		}
 	} else {
 		p.line("打开这个地址：%s", srv.URL())
+	}
+	if opened {
+		// 浏览器已经接管，双击进来的那个黑窗口就没必要留着了
+		hideConsole()
 	}
 
 	if err := srv.Wait(); err != nil {
@@ -367,6 +386,17 @@ func runGUI(args []string, out io.Writer) int {
 	}
 	p.line("已退出。")
 	return 0
+}
+
+// pauseForDoubleClick 双击启动时窗口会随进程一起消失，
+// 出错时停一下让人看清提示；命令行里调就不停。
+func pauseForDoubleClick(in io.Reader, out io.Writer) {
+	if !isInteractive() {
+		return
+	}
+	fmt.Fprintln(out)
+	fmt.Fprint(out, "按回车键退出…")
+	_, _ = bufio.NewReader(in).ReadString('\n')
 }
 
 // resolveRules 定位规则文件：显式路径 > 可执行文件同目录 > 当前目录。

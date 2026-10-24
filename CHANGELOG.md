@@ -2,6 +2,17 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)，格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.5.1] - 2026-10-24
+
+修「双击 exe 一闪而过」。
+
+### 修复
+
+- **无参数启动直接进界面**：以前不带参数会当命令行用，报「至少给一个文件或目录」后立刻退出，双击的效果就是窗口一闪而过。现在判断「无参数 + 交互终端或父进程是 explorer.exe」就直接起界面
+- **浏览器接管后收起控制台**：窗口成功打开后调用 `FreeConsole`，黑窗口不再留在屏幕上让人以为程序没退
+- **没有 rules.json 也能起**：界面按空规则启动，左边挑一个内置案例就有规则了；命令行缺规则文件仍然直接报错
+- 双击场景下启动失败会停住等回车，不至于连错误提示都看不见
+
 ## [0.5.0] - 2026-10-24
 
 加了本机图形界面（`desensitize gui`），只读：配置规则、空跑预演、保存 rules.json。
@@ -140,6 +151,7 @@
 - `tests/verify.py`：45 条断言，覆盖五种规则类型、编码写回、xlsx 数值/日期/公式、嵌套递归、隐藏目录
 - GitHub Actions：ubuntu-latest 3.10 / 3.13、windows-latest 3.12
 
+[0.5.1]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.5.1
 [0.5.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.5.0
 [0.4.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.4.0
 [0.3.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.3.0

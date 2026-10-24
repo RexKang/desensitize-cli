@@ -129,7 +129,10 @@ IPv4      9      3     10.1.2.3  →  203.8.9.10
 
 不想手改 JSON 的时候用：
 
+**双击 exe 也能用**：不带任何参数启动（或从资源管理器双击）就直接进界面，浏览器接管后控制台窗口自动收起。
+
 ```bash
+desensitize                      # 等价于 desensitize gui
 desensitize gui                  # 起本机界面并打开浏览器
 desensitize gui --port 18080     # 指定端口（默认随机）
 desensitize gui --keep-alive     # 页面关掉也不退出
