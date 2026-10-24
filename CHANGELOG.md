@@ -2,6 +2,17 @@
 
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)，格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [0.5.3] - 2026-10-24
+
+### 修复
+
+- 空跑结果表的「位置」列只显示 `L3`，多个文件时看不出命中来自哪个文件；改成「文件名 + 行号」两行显示，完整路径放进悬停提示
+
+### 新增
+
+- `scripts/ui-check.sh`：界面自检脚本，起临时实例 → 无头浏览器真打开页面 → 断言渲染与空跑结果 → 截图留证
+- 页面自检模式 `?selftest=1&target=<目录>`：走真实代码路径（载入案例 → 空跑 → 渲染），把结果写成 `#selftest-report` 的 JSON 供脚本断言
+
 ## [0.5.2] - 2026-10-24
 
 把界面上缺的三块补上：目录选择、设置入口、空规则库的引导。
@@ -165,6 +176,7 @@
 - `tests/verify.py`：45 条断言，覆盖五种规则类型、编码写回、xlsx 数值/日期/公式、嵌套递归、隐藏目录
 - GitHub Actions：ubuntu-latest 3.10 / 3.13、windows-latest 3.12
 
+[0.5.3]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.5.3
 [0.5.2]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.5.2
 [0.5.1]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.5.1
 [0.5.0]: https://github.com/RexKang/desensitize-cli/releases/tag/v0.5.0

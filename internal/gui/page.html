@@ -22,7 +22,7 @@ body{margin:0;font:13.5px/1.6 system-ui,"Microsoft YaHei",sans-serif;color:#1f23
 .panel{background:#fff;border:1px solid #e3e8ee;border-radius:8px;overflow:hidden}
 .ph{font-size:11px;letter-spacing:.04em;color:#8b949e;padding:8px 10px 4px;display:flex;align-items:center;gap:6px}
 .ph .sp{flex:1}
-.g{display:grid;grid-template-columns:252px minmax(0,1fr) 430px;gap:10px;padding:10px 14px 30px;align-items:start}
+.g{display:grid;grid-template-columns:252px minmax(0,1fr) 462px;gap:10px;padding:10px 14px 30px;align-items:start}
 .ritem{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;cursor:pointer;border-left:2px solid transparent}
 .ritem:hover{background:#f6f8fa}
 .ritem.on{background:#e7f0fb;border-left-color:#0969da}
@@ -505,11 +505,20 @@ function renderPreview(r) {
   wrap.style.display = 'block';
   wrap.innerHTML = '';
   const t = document.createElement('table');
-  t.innerHTML = '<thead><tr><th style="width:92px">位置</th><th style="width:54px">规则</th><th>原文 → 替换后</th><th>上下文</th></tr></thead>';
+  t.innerHTML = '<thead><tr><th style="width:124px">文件 / 位置</th><th style="width:54px">规则</th><th>原文 → 替换后</th><th>上下文</th></tr></thead>';
   const tb = document.createElement('tbody');
   r.rows.forEach(x => {
     const tr = document.createElement('tr');
-    const c1 = document.createElement('td'); c1.style.cssText = 'font-size:11px;font-family:ui-monospace,Consolas,monospace'; c1.textContent = x.loc;
+    const c1 = document.createElement('td');
+    c1.style.cssText = 'font-family:ui-monospace,Consolas,monospace;max-width:124px';
+    const fname = document.createElement('div');
+    fname.style.cssText = 'font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    fname.textContent = (x.file || '').split(/[\/]/).pop() || '(未知)';
+    fname.title = x.file || '';
+    const floc = document.createElement('div');
+    floc.style.cssText = 'font-size:10px;color:#8b949e';
+    floc.textContent = x.loc || '';
+    c1.append(fname, floc);
     const c2 = document.createElement('td'); c2.textContent = x.rule;
     const c3 = document.createElement('td'); c3.style.fontSize = '11px';
     const s1 = document.createElement('span'); s1.style.color = '#cf222e'; s1.textContent = x.before || '（空）';
@@ -577,6 +586,44 @@ $('#quitBtn').onclick = async () => {
 };
 
 setInterval(() => api('/api/ping', {}).catch(() => {}), 4000);
-boot();
+
+// 自检模式：?selftest=1&target=... 走真实代码路径（载入案例 → 空跑 → 渲染），
+// 把结果写成一段 JSON 放在 #selftest-report 里，给 scripts/ui-check.sh 断言用。
+async function selftest(target) {
+  const rep = {ok: true, presets: state.presets.length, rulesAtBoot: state.rules.length};
+  try {
+    const p = state.presets.find(x => x.id === 'network') || state.presets[0];
+    state.rules = JSON.parse(JSON.stringify(p.rules || []));
+    sel = 0;
+    showTab('rules');
+    renderAll();
+    rep.preset = p.id;
+    rep.rulesAfterLoad = state.rules.length;
+    rep.editorTitle = document.querySelector('#editTitle').textContent;
+    rep.listRendered = document.querySelectorAll('#listRules .ritem').length;
+    document.querySelector('#target').value = target;
+    await runPreview();
+    const sum = document.querySelector('#summary').textContent.trim();
+    rep.summary = sum;
+    rep.hits = parseInt((sum.match(/(\d+)\s*处/) || [0, '0'])[1], 10);
+    rep.files = parseInt((sum.match(/(\d+)\s*个文件/) || [0, '0'])[1], 10);
+    rep.rows = document.querySelectorAll('#rowsWrap tbody tr').length;
+    rep.marked = document.querySelectorAll('#rowsWrap mark').length;
+    rep.banner = document.querySelector('#banner').className;
+  } catch (e) {
+    rep.ok = false;
+    rep.error = String(e);
+  }
+  const pre = document.createElement('pre');
+  pre.id = 'selftest-report';
+  pre.style.display = 'none';
+  pre.textContent = JSON.stringify(rep);
+  document.body.append(pre);
+}
+
+const qp = new URLSearchParams(location.search);
+boot().then(() => {
+  if (qp.get('selftest')) selftest(qp.get('target') || '');
+});
 </script>
 </body></html>

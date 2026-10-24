@@ -17,6 +17,7 @@ rules.json
 *.bak
 *.desensitize.tmp
 out/
+.ui-check/
 *.html
 *.csv
 # go:embed 的页面不是产物，必须入库

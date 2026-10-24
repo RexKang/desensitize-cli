@@ -328,21 +328,44 @@ desensitize-cli/
 │   ├── rules/                规则模型、匹配、模板、ip_shift、hash
 │   ├── mask/                 引擎：多规则合并成一次改写
 │   ├── files/                编码、文本/xlsx 处理、目录发现、统计
-│   ├── gui/                  本机界面：server.go（token/心跳）+ api.go + page.html
+│   ├── gui/                  本机界面：server.go（token/心跳）+ api.go + browse.go + page.html
 │   ├── presets/              内置案例库（presets.json + 校验）
 │   ├── report/               HTML / CSV / JSON 报告
 │   ├── browser/              各平台打开本地文件（构建标签分文件）
 │   └── fileurl/              file:/// URL 生成
+├── scripts/ui-check.sh       界面自检：无头浏览器真开页面 + 断言 + 截图
 ├── rules.sample.json         样例规则，首跑自动复制成 rules.json
 ├── python/                   v0.1.x 的 Python 实现（已冻结，仅存档）
 └── .github/workflows/ci.yml  Go + Python 两套测试
 ```
 
 ```bash
-go test ./...        # 36 个测试函数：规则、引擎、编码、xlsx、发现、CLI 退出码、打开判断
+go test ./...        # 6 个包的测试：规则、引擎、编码、xlsx、发现、CLI 退出码、GUI 接口
 go vet ./...
 gofmt -l .           # 应无输出
+bash scripts/ui-check.sh   # 改过界面就跑这个（见下）
 ```
+
+### 改完界面必须真开一次页面
+
+接口返回正确不等于页面显示正确。改过 `page.html` 或任何 GUI 接口后，跑：
+
+```bash
+bash scripts/ui-check.sh            # 用 .ui-check/ 下的样例数据
+bash scripts/ui-check.sh <目录>      # 或指定目录
+```
+
+它做的事：起一个临时实例（随机端口、`--no-open`）→ 用无头 Chrome/Edge 真的打开页面 →
+断言接口、规则载入、空跑命中、结果行数、上下文高亮 → 截图到 `.ui-check/ui.png`。
+任何一项不对就非零退出。
+
+页面本身带一个自检模式，脚本就是靠它驱动真实代码路径（载入案例 → 空跑 → 渲染）：
+
+```
+http://127.0.0.1:<port>/?t=<token>&selftest=1&target=<目录>
+```
+
+跑完会在页面末尾塞一段 `#selftest-report` 的 JSON。手工排查时也可以直接用它。
 
 Python 版（v0.1.x）仍在 `python/` 下可跑，行为与 Go 版逐字节对齐，见 [python/README.md](python/README.md)。
 
