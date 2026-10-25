@@ -1,6 +1,6 @@
 // Package mask 是脱敏引擎：把多条规则的命中合并成一次改写。
 //
-// 语义与 Python 版一致——从左到右扫描，同一位置按规则顺序取第一条，
+// 语义——从左到右扫描，同一位置按规则顺序取第一条，
 // 被某个匹配消耗掉的文本不再参与后续匹配。
 package mask
 
@@ -41,7 +41,7 @@ func Apply(text string, rs []*rules.Rule) (string, []Hit) {
 	}
 
 	// 左端点优先，其次规则次序；同一条规则内部不会重叠，所以这就等价于
-	// Python 版「单趟扫描 + 交替分支顺序」的结果。
+	// 「单趟扫描 + 交替分支顺序」的结果。
 	sort.SliceStable(cands, func(i, j int) bool {
 		if cands[i].match.Start != cands[j].match.Start {
 			return cands[i].match.Start < cands[j].match.Start

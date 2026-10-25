@@ -1,5 +1,5 @@
 {
-  "_comment": "默认样例规则（Go 版与 python/ 下的旧版共用同一份 schema）。首次运行会自动复制成 rules.json；改 rules.json，别改这个文件。每种规则类型给了一条示例，不需要的把 enabled 改成 false 或直接删掉那一条。",
+  "_comment": "默认样例规则。首次运行会自动复制成 rules.json；改 rules.json，别改这个文件。每种规则类型给了一条示例，不需要的把 enabled 改成 false 或直接删掉那一条。",
   "version": "0.2.0",
   "rules": [
     {
@@ -55,6 +55,13 @@
       "replace": "SITE-",
       "enabled": false,
       "note": "字面替换。boundary=word 表示左边不能是字母数字，MAP-01 里的 AP- 不会被误伤"
+    },
+    {
+      "id": "strip_images",
+      "desc": "删除图片",
+      "type": "strip_images",
+      "enabled": false,
+      "note": "结构型规则：处理 .docx / .xlsx 时删掉正文、页眉页脚、脚注尾注批注里的图片与工作表图片；图表、SmartArt、文本框、嵌入对象不动。默认关闭"
     },
     {
       "id": "hostname",

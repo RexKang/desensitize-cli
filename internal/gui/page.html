@@ -4,206 +4,274 @@
 <title>desensitize gui</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font:13.5px/1.6 system-ui,"Microsoft YaHei",sans-serif;color:#1f2328;background:#f6f8fa}
-.top{background:#fff;border-bottom:1px solid #e3e8ee;padding:9px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
-.top h1{font-size:15px;margin:0;font-weight:700}
-.top .sub{color:#6e7781;font-size:11.5px}
-.top .sp{flex:1}
-.btn{border:1px solid #d0d7de;background:#fff;border-radius:6px;padding:4px 9px;font:inherit;font-size:12px;cursor:pointer;color:#24292f;white-space:nowrap}
-.btn:hover{background:#f6f8fa}
-.btn.blue{background:#0969da;border-color:#0969da;color:#fff;font-weight:600}
-.btn.mini{padding:1px 6px;font-size:11px}
-.btn.ghost{border-color:transparent;color:#0969da}
-.badge{display:inline-block;font-size:10.5px;padding:0 5px;border-radius:9px;background:#eef2f6;color:#57606a;line-height:16px}
-.badge.low{background:#dafbe1;color:#1a7f37}
-.badge.mid{background:#fff8c5;color:#9a6700}
-.badge.high{background:#ffebe9;color:#cf222e}
-.badge.todo{background:#f6f8fa;color:#8b949e;border:1px dashed #d0d7de}
+body{margin:0;font:14px/1.6 system-ui,"Microsoft YaHei",sans-serif;color:#1f2328;background:#f6f8fa}
+.top{background:#fff;border-bottom:1px solid #e3e8ee;padding:9px 16px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:6}
+.top h1{font-size:16px;margin:0;font-weight:700}
+.top .sub{color:#57606a;font-size:12px}
+.sp{flex:1}
+.note{background:#fff8c5;border:1px solid #eed888;color:#9a6700;font-size:14px;padding:6px 12px;border-radius:6px;margin:9px 16px 0;line-height:1.55}
+.steps{display:flex;gap:2px;flex:1 0 100%;border-top:1px solid #eef1f4;margin-top:8px}
+.step{display:flex;align-items:center;gap:8px;padding:8px 12px;border:0;border-bottom:2px solid transparent;background:none;font:inherit;font-size:14px;color:#57606a;cursor:pointer;white-space:nowrap}
+.step b{font-weight:600}
+.step i{font-style:normal;font-size:12px;color:#57606a;font-weight:400}
+.step:hover{color:#0969da}
+.step.on{color:#0969da;border-bottom-color:#0969da}
+.step.on b{font-weight:700}
+.step.done b::after{content:" ✓";color:#1f883d;font-weight:700}
+.report-meta{font-size:12px;color:#57606a;max-width:44vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stage{padding:10px 16px 12px;display:flex;flex-direction:column;min-height:calc(100vh - 104px)}
+.g{display:grid;grid-template-columns:280px minmax(0,1fr) 380px;gap:12px;align-items:start}
+.g>div:last-child,.g>.panel:first-child{position:sticky;top:104px}
 .panel{background:#fff;border:1px solid #e3e8ee;border-radius:8px;overflow:hidden}
-.ph{font-size:11px;letter-spacing:.04em;color:#8b949e;padding:8px 10px 4px;display:flex;align-items:center;gap:6px}
-.ph .sp{flex:1}
-.g{display:grid;grid-template-columns:252px minmax(0,1fr) 462px;gap:10px;padding:10px 14px 30px;align-items:start}
-.ritem{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;cursor:pointer;border-left:2px solid transparent}
-.ritem:hover{background:#f6f8fa}
-.ritem.on{background:#e7f0fb;border-left-color:#0969da}
-.ritem .nm{flex:1;font-size:12.2px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ritem .n{font-size:10px;color:#8b949e}
-.ptabs{display:flex;border-bottom:1px solid #eef1f4}
-.ptabs div{flex:1;text-align:center;padding:5px 0;font-size:11.8px;color:#57606a;cursor:pointer;border-bottom:2px solid transparent}
-.ptabs div.on{color:#0969da;font-weight:600;border-bottom-color:#0969da}
-.case{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;cursor:pointer}
-.case:hover{background:#f6f8fa}
-.case .nm{flex:1;font-size:11.8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.case .d{font-size:10.5px;color:#8b949e;padding:0 6px 4px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.empty{padding:18px 12px;text-align:center;color:#8b949e;font-size:12px}
-.empty .big{font-size:13px;color:#3d4451;margin-bottom:6px}
-.body{padding:2px 10px 10px}
-label.f{display:block;font-size:11.5px;color:#57606a;margin:7px 0 2px}
-input[type=text],select{width:100%;padding:4px 7px;border:1px solid #d0d7de;border-radius:6px;font:inherit;font-size:12px}
+.ph{font-size:12px;letter-spacing:.04em;color:#57606a;padding:9px 12px 5px;display:flex;align-items:center;gap:6px}
+.btn{border:1px solid #d0d7de;background:#fff;border-radius:6px;padding:5px 10px;font:inherit;font-size:14px;cursor:pointer;color:#24292f;white-space:nowrap}
+.btn:hover{background:#f6f8fa}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.dry{background:#1f883d;border-color:#1f883d;color:#fff;font-weight:600}
+.btn.dry:hover{background:#1a7f37}
+.btn.danger{background:#cf222e;border-color:#cf222e;color:#fff;font-weight:600}
+.btn.danger:hover{background:#a40e26}
+.btn.blue{background:#0969da;border-color:#0969da;color:#fff;font-weight:600}
+.btn.blue:hover{background:#0757ba}
+.btn.ghost{border-color:transparent;color:#0969da;background:transparent}
+.btn.mini{padding:4px 9px;font-size:12px}
+.badge{display:inline-block;font-size:12px;padding:0 6px;border-radius:9px;background:#eef2f6;color:#57606a;line-height:18px;white-space:nowrap}
+.badge.on{background:#dafbe1;color:#1a7f37}
+.badge.warn{background:#fff8c5;color:#9a6700}
+.badge.err{background:#ffebe9;color:#cf222e}
+.badge.num{background:#e7f0fb;color:#0a3069}
+code,.mono{font-family:ui-monospace,Consolas,monospace;font-size:12px}
+input[type=text],select{width:100%;padding:4px 8px;border:1px solid #d0d7de;border-radius:6px;font:inherit;font-size:14px;background:#fff;color:#1f2328}
+input[type=text]:focus,select:focus{outline:2px solid #cfe3ff;border-color:#0969da}
+label.f{display:block;font-size:12px;color:#57606a;margin:8px 0 3px}
 .row{display:flex;gap:6px;align-items:center}
-.hint{font-size:11px;color:#8b949e}
+.hint{font-size:12px;color:#57606a}
 .split{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.sw{width:26px;height:15px;border-radius:8px;background:#d0d7de;position:relative;display:inline-block;vertical-align:middle;cursor:pointer;flex:none}
+.sw{width:27px;height:16px;border-radius:8px;background:#d0d7de;position:relative;display:inline-block;vertical-align:middle;cursor:pointer;flex:none}
 .sw.on{background:#2da44e}
-.sw::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:#fff;transition:.15s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:.15s}
 .sw.on::after{left:13px}
-table{width:100%;border-collapse:collapse}
-th,td{text-align:left;padding:3px 7px;border-bottom:1px solid #eef1f4;font-size:11.8px;vertical-align:top}
-th{color:#57606a;font-size:10.8px;font-weight:600;background:#fbfcfd}
 mark{background:#ffd8d3;color:#82071e;font-weight:600;padding:0 1px;border-radius:2px}
-#banner{display:none;margin:8px 14px 0;padding:6px 10px;border-radius:6px;font-size:12px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:4px 7px;border-bottom:1px solid #eef1f4;font-size:14px;vertical-align:top}
+th{color:#57606a;font-size:12px;font-weight:600;background:#fbfcfd}
+#banner{display:none;margin:9px 16px 0;padding:6px 11px;border-radius:6px;font-size:14px}
 #banner.err{display:block;background:#ffebe9;border:1px solid #f5c2c0;color:#cf222e}
 #banner.ok{display:block;background:#dafbe1;border:1px solid #aee9c1;color:#1a7f37}
 #banner.warn{display:block;background:#fff8c5;border:1px solid #eed888;color:#9a6700}
-.mask{position:fixed;inset:0;background:rgba(31,35,40,.28);display:none;z-index:20}
+
+.rlist{max-height:44vh;overflow:auto;padding:0 6px 2px}
+.ritem{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:6px;cursor:pointer;border-left:2px solid transparent}
+.ritem:hover{background:#f6f8fa}
+.ritem.on{background:#e7f0fb;border-left-color:#0969da}
+.ritem .txt{flex:1;min-width:0}
+.ritem .nm{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ritem .meta{font-size:12px;color:#57606a;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ritem .tg{flex:none;cursor:pointer}
+.pad{padding:6px 10px 10px}
+.cases{padding:0 10px 10px;max-height:28vh;overflow:auto}
+.case{padding:5px 6px;border-radius:6px;cursor:pointer}
+.case:hover{background:#f6f8fa}
+.case .h{display:flex;align-items:center;gap:6px}
+.case .nm{flex:1;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.case .d{font-size:12px;color:#57606a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{padding:16px 10px;text-align:center;color:#57606a;font-size:14px}
+.empty .big{font-size:14px;color:#3d4451;margin-bottom:6px}
+
+.checkline{font-size:12px;margin-top:5px;color:#1a7f37}
+.checkline.bad{color:#cf222e}
+.demo{font-size:12px;color:#57606a;margin-top:3px;min-height:19px}
+.demo b{color:#1a7f37}
+.probe{max-height:22vh;overflow:auto;border:1px solid #eef1f4;border-radius:6px;margin-top:6px}
+.probe table th{position:sticky;top:0;z-index:1}
+.ctx{color:#3d4451;margin-top:2px}
+.floc{font-size:12px;color:#57606a}
+.fname{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px 10px;align-items:center;margin-top:9px;font-size:12px;color:#57606a}
+.opts .n{width:auto;flex:1;min-width:0;padding:3px 6px;font-size:12px}
+.opts select{padding:3px 7px;font-size:12px;width:100%}
+.opts .full{grid-column:1 / -1;display:flex;gap:8px;align-items:center}
+.opts .full input{flex:1}
+.opts .full .lb{flex:none;width:32px}
+.queue{padding:0 10px 4px}
+.q{border:1px solid #d8dee4;border-radius:8px;padding:7px 9px;margin-bottom:7px;background:#fff;position:relative}
+.q .h{display:flex;align-items:center;gap:6px}
+.q .no{font-weight:700;color:#0969da;font-size:14px;flex:none}
+.q .t{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.q .m{color:#57606a;font-size:12px;margin-top:3px;line-height:1.5;padding-right:12px}
+.q .acts{display:flex;gap:4px;margin-top:5px}
+.q .x{position:absolute;right:2px;top:0;padding:4px 8px;color:#57606a;cursor:pointer;font-size:16px;line-height:1.2}
+.q .x:hover{color:#cf222e}
+.q.total{background:#f6f8fa;border-style:dashed;margin-bottom:2px}
+.q.total .t{font-size:14px}
+.actionbar{position:sticky;bottom:0;margin-top:auto;z-index:5;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e3e8ee;border-radius:8px;padding:8px 12px;margin-bottom:0;box-shadow:0 -4px 14px rgba(31,35,40,.06)}
+.ab-sum{flex:1;min-width:0;font-size:12px;color:#57606a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ab-sum b{color:#1f2328}
+.ab-btns{display:flex;gap:8px;flex:none}
+.ab-btns .btn{padding:7px 14px}
+#summary{padding:4px 14px 8px}
+#summary .line{font-size:14px;color:#57606a;line-height:1.6}
+#summary .line b{color:#1f2328}
+#rowsWrap{max-height:64vh;overflow:auto;padding:0 14px 14px}
+#rowsWrap table th{position:sticky;top:0;z-index:1}
+#rowsWrap tbody tr:nth-child(4n+1) td,
+#rowsWrap tbody tr:nth-child(4n+2) td{background:#fbfcfd}
+
+.mask{position:fixed;inset:0;background:rgba(31,35,40,.34);display:none;z-index:20}
 .mask.on{display:block}
-.drawer{position:fixed;top:0;right:-420px;width:400px;height:100vh;background:#fff;border-left:1px solid #e3e8ee;z-index:21;transition:right .18s ease;display:flex;flex-direction:column}
-.drawer.on{right:0}
-.dh{padding:12px 14px;border-bottom:1px solid #eef1f4;display:flex;align-items:center;gap:8px}
-.dh .t{font-weight:700;font-size:14px}
-.dh .sp{flex:1}
-.db{overflow-y:auto;padding:4px 0 20px}
-.grp{padding:9px 14px 11px;border-bottom:1px solid #f4f6f8}
-.grp h4{margin:0 0 6px;font-size:11.5px;color:#57606a;letter-spacing:.04em}
-.ctl{display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 0}
-.ctl .sp{flex:1}
-input.n{width:60px;padding:2px 5px;font-size:11.5px}
-.radio{width:13px;height:13px;border:1px solid #d0d7de;border-radius:50%;display:inline-block;position:relative;cursor:pointer;flex:none}
-.radio.on{border-color:#0969da;border-width:4px}
 .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:30;background:rgba(31,35,40,.34)}
 .modal.on{display:flex}
-.pbox{background:#fff;border-radius:10px;width:580px;max-width:94vw;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 32px rgba(31,35,40,.24)}
-.pbox .hh{padding:11px 14px;border-bottom:1px solid #eef1f4;display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px}
-.pbox .hh .sp{flex:1}
+.pbox{background:#fff;border-radius:10px;width:620px;max-width:94vw;max-height:84vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 32px rgba(31,35,40,.24)}
+.pbox .hh{padding:11px 14px;border-bottom:1px solid #eef1f4;display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px}
 .pbox .bar{padding:8px 12px;border-bottom:1px solid #eef1f4;display:flex;gap:6px;align-items:center;background:#fbfcfd}
-.pbox .bar .sp{flex:1}
+.pbox .pfoot{padding:10px 14px;border-top:1px solid #eef1f4;display:flex;gap:8px;align-items:center;background:#fbfcfd}
+.pbox .pbody{padding:10px 14px;overflow:auto}
 .plist{overflow-y:auto;padding:4px 6px;min-height:240px}
-.pitem{padding:5px 8px;border-radius:6px;cursor:pointer;font-size:12.5px;display:flex;gap:6px;align-items:center}
+.pitem{padding:6px 9px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;gap:6px;align-items:center}
 .pitem:hover{background:#eef2f6}
 .pitem .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pfoot{padding:8px 12px;border-top:1px solid #eef1f4;display:flex;gap:6px;align-items:center;background:#fbfcfd}
-.qitem{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:6px;background:#f6f8fa;margin-bottom:4px}
-.qitem .n{font-size:11.5px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.qitem .m{font-size:10.5px;color:#8b949e}
-.qitem .x{cursor:pointer;color:#8b949e;padding:0 2px;font-size:13px;line-height:1}
-.qitem .x:hover{color:#cf222e}
-.qitem .mv{cursor:pointer;color:#8b949e;font-size:11px;padding:0 1px}
-.qitem .mv:hover{color:#0969da}
-.kv{display:flex;gap:8px;font-size:12px;padding:2px 0}
-.kv .k{color:#8b949e;width:52px;flex:none}
+.kv{display:flex;gap:8px;font-size:14px;padding:2px 0}
+.kv .k{color:#57606a;width:56px;flex:none}
 .kv .v{flex:1;word-break:break-all}
-.slist{max-height:38vh;overflow:auto;border:1px solid #eef1f4;border-radius:6px;padding:6px 8px;margin-top:6px}
-.sblock{margin-bottom:8px}
-.sblock .h{font-size:12px;font-weight:700;margin-bottom:2px}
-.sblock .r{font-size:11.5px;color:#3d4451;padding-left:10px}
-.sblock .off{color:#8b949e}
+.slist{max-height:40vh;overflow:auto;border:1px solid #eef1f4;border-radius:6px;padding:9px 12px;margin-top:8px}
+.sblock{margin-bottom:10px}
+.sblock .h{font-size:14px;font-weight:700;margin-bottom:4px}
+.sblock .r{font-size:14px;color:#3d4451;padding:1px 0 2px 14px;line-height:1.55}
+.sblock .off{color:#57606a}
+
+.taskbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border:1px solid #e3e8ee;border-radius:8px;padding:8px 10px;margin-bottom:12px}
+.taskbar .tb-label{font-size:12px;color:#57606a;flex:none}
+.taskbar #target{flex:1;min-width:240px;width:auto}
+.tb-opts{position:relative}
+.tb-opts>summary,.presets>summary{list-style:none;cursor:pointer}
+.tb-opts>summary::-webkit-details-marker,.presets>summary::-webkit-details-marker{display:none}
+.tb-opts .opts{position:absolute;right:0;top:34px;width:440px;margin:0;padding:10px 12px;background:#fff;border:1px solid #d8dee4;border-radius:8px;box-shadow:0 10px 28px rgba(31,35,40,.16);z-index:12}
+.taskcard{padding:2px 12px 12px;display:grid;gap:6px}
+.kvrow{display:flex;gap:10px;align-items:baseline;font-size:12px;color:#57606a}
+.kvrow .k{flex:none;width:60px}
+.kvrow .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1f2328}
+.presets{position:relative;margin-left:auto}
+.presets .cases{position:absolute;right:0;top:32px;width:400px;max-height:360px;overflow:auto;margin:0;padding:6px;background:#fff;border:1px solid #d8dee4;border-radius:8px;box-shadow:0 10px 28px rgba(31,35,40,.16);z-index:12}
+.case .d{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 </style></head><body>
 
 <div class="top">
   <h1>desensitize gui</h1>
-  <span class="sub" id="sub">本机界面 · 空跑 / 执行</span>
+  <span class="sub">测试数据脱敏 · 先试跑再写盘</span>
   <span class="sp"></span>
-  <span class="badge" id="optSummary" title="点右边「设置」修改">递归 · 上限 200</span>
-  <span class="badge" id="rulePath">rules.json</span>
-  <button class="btn" id="gearBtn" title="运行选项">⚙ 设置</button>
+  <span class="badge num" id="rulesBadge" title="规则库文件">rules.json · 0 条</span>
   <button class="btn" id="saveBtn">保存规则库</button>
   <button class="btn" id="saveAsBtn">另存为…</button>
   <button class="btn ghost" id="quitBtn">退出</button>
+
+  <div class="steps" id="stepBar">
+    <button class="step" id="step1" data-step="1"><b>① 目标</b><i id="step1v">未选择</i></button>
+    <button class="step on" id="step2" data-step="2"><b>② 规则</b><i id="step2v">0 条</i></button>
+    <button class="step" id="step3" data-step="3"><b>③ 预演</b><i id="step3v">未预演</i></button>
+    <button class="step" id="step4" data-step="4"><b>④ 执行</b><i id="step4v">未执行</i></button>
+  </div>
 </div>
 <div id="banner"></div>
 
-<div class="g">
-  <div class="panel">
-    <div class="ptabs"><div class="on" id="tabRules">规则库 0</div><div id="tabCases">案例 0</div></div>
-    <div id="listRules" style="padding:2px 5px 6px;max-height:72vh;overflow:auto"></div>
-    <div id="listCases" style="padding:2px 5px 6px;max-height:72vh;overflow:auto;display:none"></div>
-    <div style="padding:2px 9px 9px" class="row">
-      <button class="btn" id="addBtn">+ 新增规则</button>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="ph"><span id="editTitle">编辑</span><span class="sp"></span><span class="hint" id="editHint"></span></div>
-    <div class="body" id="editor"></div>
-  </div>
-
-  <div class="panel">
-    <div class="ph">待执行队列<span class="sp"></span><span class="hint" id="queueHint"></span></div>
-    <div class="body" style="padding-top:6px">
-      <div id="queueList"></div>
-      <div class="row" style="margin-top:2px">
-        <button class="btn" id="enqueueBtn" style="flex:1">+ 加入队列</button>
-        <button class="btn" id="clearQueueBtn">清空</button>
+<div class="stage">
+  <div class="taskbar" id="targetPanel">
+    <span class="tb-label">目标</span>
+    <input type="text" id="target" class="mono" placeholder="选目录或单个文件，也可以直接粘贴路径">
+    <button class="btn" id="pickDirBtn">选择目录…</button>
+    <button class="btn" id="pickFileBtn">选择文件…</button>
+    <button class="btn ghost" id="browseBtn" title="内置目录浏览器（原生对话框不可用时用它）">手选…</button>
+    <details class="tb-opts">
+      <summary class="btn">任务设置 ▾</summary>
+      <div class="opts">
+        <label style="display:flex;gap:6px;align-items:center">递归 <span class="sw on" id="swRec"></span></label>
+        <label style="display:flex;gap:6px;align-items:center">上限 <input class="n" type="text" id="inLimit" value="200"></label>
+        <label class="full"><span class="lb">备份</span>
+          <select id="selBackup">
+            <option value="file">按文件 .bak</option>
+            <option value="zip">整体 .bak.zip</option>
+            <option value="none">不备份</option>
+          </select>
+        </label>
+        <span class="full"><span class="lb">报告</span><input type="text" id="inReport" value="明细.html"></span>
       </div>
-      <div class="hint" style="margin-top:4px">顺序执行：按队列顺序作用在同一份内容上，最后只写一次盘。</div>
+    </details>
+  </div>
+
+  <div id="paneCfg">
+    <div class="g">
+
+      <div class="panel">
+        <div class="ph">规则库<span class="sp"></span><span class="hint" id="ruleCount"></span></div>
+        <div class="rlist" id="listRules"></div>
+        <div class="pad"><button class="btn" id="addBtn" style="width:100%">+ 新增规则</button></div>
+      </div>
+
+      <div class="panel" id="editorPanel">
+        <div class="ph"><span id="editTitle">编辑</span><span class="sp"></span><span class="hint" id="editHint"></span>
+          <details class="presets">
+            <summary class="btn mini">从模板开始 ▾</summary>
+            <div class="cases" id="listCases"></div>
+          </details>
+        </div>
+        <div class="body" id="editor" style="padding:2px 12px 12px"></div>
+      </div>
+
+      <div>
+        <div class="panel" id="taskPanel">
+          <div class="ph">本次任务<span class="sp"></span><span class="hint" id="taskHint"></span></div>
+          <div class="taskcard" id="taskCard"></div>
+        </div>
+
+        <div class="panel" id="queuePanel" style="margin-top:12px">
+          <div class="ph">待执行规则<span class="sp"></span><span class="hint" id="queueHint"></span>
+            <button class="btn mini ghost" id="clearQueueBtn">清空</button></div>
+          <div class="queue" id="queueList"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <div class="panel" style="margin-top:10px">
-    <div class="ph">目标与执行<span class="sp"></span><span class="hint" id="prevHint"></span></div>
-    <div class="body">
-      <label class="f">目标路径（目录或单个文件）</label>
-      <div class="row">
-        <input type="text" id="target" placeholder="点「浏览…」选目录，或直接粘贴路径">
-        <button class="btn" id="browseBtn">浏览…</button>
-      </div>
-      <div class="row" style="margin-top:6px">
-        <button class="btn blue" id="runBtn" style="flex:1">空跑</button>
-        <button class="btn" id="execBtn" style="flex:1;background:#1f883d;border-color:#1f883d;color:#fff;font-weight:600">执行</button>
-        <button class="btn" id="clearBtn">清空结果</button>
-      </div>
-      <div class="hint" style="margin-top:6px">空跑只算不写；执行前会弹确认，只列启用的规则。</div>
-      <div id="summary" style="margin-top:8px"></div>
-      <div id="rowsWrap" style="max-height:46vh;overflow:auto;display:none;margin-top:6px"></div>
+  <div id="paneReport" style="display:none">
+    <div class="panel">
+      <div class="ph">运行报告<span class="sp"></span><span class="hint" id="prevHint"></span><span class="report-meta" id="reportMeta"></span>
+        <button class="btn mini" id="reportBtn">导出报告</button>
+        <button class="btn blue mini" id="clearBtn">清空结果</button></div>
+      <div id="summary"></div>
+      <div id="rowsWrap" style="display:none"></div>
     </div>
   </div>
-</div>
 
-<div class="mask" id="maskOpt"></div>
-<div class="drawer" id="drawer">
-  <div class="dh"><span class="t">⚙ 运行选项</span><span class="sp"></span>
-    <button class="btn mini" id="closeOpt">×</button></div>
-  <div class="db">
-    <div class="grp">
-      <h4>扫描</h4>
-      <label class="ctl"><span class="sw on" id="swRec"></span>递归子目录<span class="sp"></span><span class="hint">--no-recursive 取消</span></label>
-      <label class="ctl">最多扫描文件数<input class="n" type="text" id="inLimit" value="200"><span class="sp"></span></label>
-      <div class="hint">目录很大先限个数，看命中面够了再全量。</div>
-    </div>
-    <div class="grp">
-      <h4>备份</h4>
-      <label class="ctl"><span class="radio" data-b="zip"></span>整体打包<span class="sp"></span><span class="hint">上层目录 .bak.zip</span></label>
-      <label class="ctl"><span class="radio on" data-b="file"></span>按文件<span class="badge">默认</span><span class="sp"></span><span class="hint">同目录 .bak</span></label>
-      <label class="ctl"><span class="radio" data-b="none"></span>不备份<span class="sp"></span><span class="hint" style="color:#cf222e">无法回滚</span></label>
-      <div class="hint" style="margin-top:4px">「执行」时按这个方式先备份再原地覆盖。</div>
-    </div>
-    <div class="grp">
-      <h4>报告</h4>
-      <label class="ctl">HTML 报告路径<input type="text" id="inReport" value="明细.html"><span class="sp"></span></label>
-    </div>
-    <div class="grp" style="border-bottom:none">
-      <h4>规则</h4>
-      <label class="ctl">规则文件<span class="sp"></span><span class="hint" id="optRulesPath"></span></label>
-      <div class="hint">保存时先备份旧文件；外部改过会拒绝覆盖。</div>
+  <div class="actionbar" id="actionBar">
+    <span class="badge warn" id="taskState">未预演</span>
+    <div class="ab-sum" id="taskLine"></div>
+    <div class="ab-btns">
+      <button class="btn" id="showReportBtn" disabled>看报告</button>
+      <button class="btn dry" id="runBtn">空跑</button>
+      <button class="btn danger" id="execBtn" disabled title="先空跑并确认命中面">执行…</button>
     </div>
   </div>
 </div>
 
 <div class="modal" id="confirmBox">
-  <div class="pbox" style="width:620px">
+  <div class="pbox">
     <div class="hh">确认执行<span class="sp"></span><span class="hint">只有启用的规则会被执行</span></div>
-    <div style="padding:10px 14px">
-      <div class="kv"><span class="k">目标</span><span class="v" id="cfTarget"></span></div>
+    <div class="pbody">
+      <div class="kv"><span class="k">目标</span><span class="v mono" id="cfTarget"></span></div>
+      <div class="kv"><span class="k">将改写</span><span class="v" id="cfScope"></span></div>
+      <div class="kv"><span class="k">上次预演</span><span class="v" id="cfPreview"></span></div>
       <div class="kv"><span class="k">备份</span><span class="v" id="cfBackup"></span></div>
       <div class="kv"><span class="k">报告</span><span class="v" id="cfReport"></span></div>
       <div class="kv"><span class="k">顺序</span><span class="v" id="cfSteps"></span></div>
       <div class="slist" id="cfRules"></div>
-      <div class="hint" style="margin-top:8px;color:#cf222e">执行会原地覆盖文件（先按上面的方式备份），确认无误再点。</div>
+      <div class="hint" id="cfWarn" style="margin-top:10px;color:#9a6700;display:none"></div>
+      <div class="hint" style="margin-top:10px;color:#cf222e">执行会原地覆盖文件（先按上面的方式备份），确认无误再点。</div>
     </div>
     <div class="pfoot">
-      <span style="flex:1"></span>
+      <span class="sp"></span>
       <button class="btn" id="cfCancel">取消</button>
-      <button class="btn" id="cfOk" style="background:#1f883d;border-color:#1f883d;color:#fff;font-weight:600">确认执行</button>
+      <button class="btn danger" id="cfOk">确认执行</button>
     </div>
   </div>
 </div>
@@ -211,21 +279,19 @@ input.n{width:60px;padding:2px 5px;font-size:11.5px}
 <div class="modal" id="saveAsBox">
   <div class="pbox" style="width:600px">
     <div class="hh">规则库另存为<span class="sp"></span></div>
-    <div style="padding:10px 14px">
+    <div class="pbody">
       <label class="f">目录</label>
       <div class="row">
         <input type="text" id="saDir" placeholder="点「浏览…」选目录">
         <button class="btn" id="saBrowse">浏览…</button>
       </div>
       <label class="f">文件名</label>
-      <div class="row">
-        <input type="text" id="saName" value="rules.json">
-      </div>
+      <input type="text" id="saName" value="rules.json">
       <div class="hint" style="margin-top:6px">保存后，后续「保存规则库」也会跟着写到这里。</div>
       <div class="hint" id="saMsg" style="margin-top:4px;color:#cf222e"></div>
     </div>
     <div class="pfoot">
-      <span style="flex:1"></span>
+      <span class="sp"></span>
       <button class="btn" id="saCancel">取消</button>
       <button class="btn blue" id="saOk">保存</button>
     </div>
@@ -233,8 +299,8 @@ input.n{width:60px;padding:2px 5px;font-size:11.5px}
 </div>
 
 <div class="modal" id="picker">
-  <div class="pbox">
-    <div class="hh">选择目录<span class="sp"></span><span class="hint" id="pickPath" style="font-family:ui-monospace,Consolas,monospace"></span></div>
+  <div class="pbox" style="width:580px">
+    <div class="hh">选择目录<span class="sp"></span><span class="hint mono" id="pickPath"></span></div>
     <div class="bar">
       <button class="btn mini" id="pickUp">↑ 上级</button>
       <button class="btn mini" id="pickRoots">盘符 / 根</button>
@@ -244,7 +310,7 @@ input.n{width:60px;padding:2px 5px;font-size:11.5px}
     <div class="plist" id="pickList"></div>
     <div class="pfoot">
       <span class="hint">点目录进入，点「选这个目录」确认当前层</span>
-      <span style="flex:1"></span>
+      <span class="sp"></span>
       <button class="btn" id="pickCancel">取消</button>
       <button class="btn blue" id="pickOk">选这个目录</button>
     </div>
@@ -255,12 +321,24 @@ input.n{width:60px;padding:2px 5px;font-size:11.5px}
 const $ = s => document.querySelector(s);
 const token = new URLSearchParams(location.search).get('t') || '';
 let state = {rules: [], presets: [], rulesPath: '', rulesMtime: 0, version: ''};
-let sel = 0, tab = 'rules';
+let sel = 0;
+let dirty = false;
 let opts = {recursive: true, limit: 200, backup: 'file', report: '明细.html'};
+let queue = [];          // 待执行规则：{name, rules, est}
+let loadedPreset = '';   // 从哪个模板载入的，用作队列项名字
 let pick = {path: '', parent: ''};
-let queue = [];          // 待执行队列：{name, rules}
-let loadedPreset = '';   // 从哪个案例载入的，用作队列项名字
 let pickMode = 'target'; // target | saveas
+let probe = null;        // 单条试跑结果
+let probeSeq = 0;
+let lastRun = null;
+
+/* ── 小工具 ───────────────────────────── */
+function el(tag, cls, text) {
+  const d = document.createElement(tag);
+  if (cls) d.className = cls;
+  if (text !== undefined && text !== null) d.textContent = text;
+  return d;
+}
 
 function banner(kind, msg, action) {
   const b = $('#banner');
@@ -268,13 +346,11 @@ function banner(kind, msg, action) {
   b.innerHTML = '';
   b.append(document.createTextNode(msg + ' '));
   if (action) {
-    const btn = document.createElement('button');
-    btn.className = 'btn mini';
-    btn.textContent = action.label;
+    const btn = el('button', 'btn mini', action.label);
     btn.onclick = action.fn;
     b.append(btn);
   }
-  if (kind === 'ok') setTimeout(() => { b.className = ''; }, 5000);
+  if (kind === 'ok') setTimeout(() => { if (b.className === 'ok') b.className = ''; }, 6000);
 }
 
 async function api(path, body) {
@@ -289,107 +365,236 @@ async function api(path, body) {
   return await r.json();
 }
 
+const activeRules = rules => (rules || []).filter(r => r.enabled !== false);
+const ruleName = r => r.desc || r.id || '(未命名)';
+const baseName = p => { const seg = String(p || '').split(/[\\/]/); return seg.pop() || '(未知)'; };
+const dirOf = p => { const seg = String(p || '').split(/[\\/]/); seg.pop(); return seg.join('/'); };
+
+// 上下文里的 ⟦ ⟧ 换成 <mark>：用 DOM 拼，文件内容不经过 innerHTML
+function ctxCell(ctx) {
+  const d = el('div', 'ctx');
+  String(ctx || '').split(/[⟦⟧]/).forEach((seg, i) => {
+    if (!seg) return;
+    d.append(i % 2 === 1 ? el('mark', null, seg) : document.createTextNode(seg));
+  });
+  return d;
+}
+
 function emptyState(box, title, desc, actionLabel, actionFn) {
-  const d = document.createElement('div');
-  d.className = 'empty';
-  const t = document.createElement('div');
-  t.className = 'big';
-  t.textContent = title;
-  const p = document.createElement('div');
-  p.textContent = desc;
-  d.append(t, p);
+  const d = el('div', 'empty');
+  d.append(el('div', 'big', title), el('div', null, desc));
   if (actionLabel) {
-    const b = document.createElement('button');
-    b.className = 'btn blue';
+    const b = el('button', 'btn blue', actionLabel);
     b.style.marginTop = '8px';
-    b.textContent = actionLabel;
     b.onclick = actionFn;
-    d.append(document.createElement('br'), b);
+    d.append(el('br'), b);
   }
   box.append(d);
 }
 
-function renderList() {
+/* ── 步骤条：目标 → 规则 → 预演 → 执行 ─────── */
+let activeStep = 2;
+
+function setStep(n) {
+  if (n === 1) { $('#target').focus(); return; }
+  if (n === 2) { showPane('cfg'); return; }
+  if (n === 3) {
+    if (!lastRun) { banner('warn', '还没有预演结果：先点底部「空跑」，命中明细会出现在这里。'); return; }
+    showPane('report');
+    return;
+  }
+  openConfirm();
+}
+
+function showPane(name) {
+  const cfg = name !== 'report';
+  $('#paneCfg').style.display = cfg ? '' : 'none';
+  $('#paneReport').style.display = cfg ? 'none' : '';
+  $('#showReportBtn').style.display = cfg ? '' : 'none';
+  activeStep = cfg ? 2 : (lastRun && lastRun.dry === false ? 4 : 3);
+  renderSteps();
+  window.scrollTo(0, 0);
+}
+
+function renderSteps() {
+  const target = $('#target').value.trim();
+  const act = activeRules(state.rules).length;
+  $('#step1v').textContent = target ? baseName(target) : '未选择';
+  $('#step2v').textContent = state.rules.length + ' 条 · 启用 ' + act;
+  $('#step3v').textContent = lastRun
+    ? (lastRun.dry === false ? '已执行' : lastRun.hits + ' 命中')
+    : '未预演';
+  $('#step4v').textContent = (lastRun && lastRun.dry === false)
+    ? '已写 ' + (lastRun.written || 0) + ' 文件'
+    : '未执行';
+  const done = [!!target, act > 0, !!lastRun, !!(lastRun && lastRun.dry === false)];
+  [1, 2, 3, 4].forEach(n => {
+    const b = $('#step' + n);
+    b.classList.toggle('on', n === activeStep);
+    b.classList.toggle('done', done[n - 1] && n !== activeStep);
+  });
+}
+
+function setReportCount() { renderSteps(); }
+[1, 2, 3, 4].forEach(n => { $('#step' + n).onclick = () => setStep(n); });
+
+function fmtTime(d) {
+  return d.toLocaleString('zh-CN', {hour12: false});
+}
+
+function renderEmptyReport() {
+  const sum = $('#summary');
+  sum.innerHTML = '';
+  sum.append(el('div', 'line', '还没有运行结果：回「规则配置」点一次空跑或执行，结果会显示在这里。'));
+  $('#rowsWrap').style.display = 'none';
+  $('#rowsWrap').innerHTML = '';
+  $('#reportMeta').textContent = '';
+  $('#reportMeta').title = '';
+  $('#prevHint').textContent = '';
+}
+
+/* ── 规则库 ───────────────────────────── */
+function renderBadge() {
+  const name = (state.rulesPath || 'rules.json').split(/[\\/]/).pop();
+  $('#rulesBadge').textContent = name + ' · ' + state.rules.length + ' 条 · ' + (dirty ? '已修改' : '已保存');
+}
+
+function metaOf(r) {
+  const bits = [r.type || 'regex'];
+  if (r.type === 'literal') bits.push(r.find || '(空 find)');
+  else if (r.type === 'digits') bits.push(r.length + ' 位');
+  else if (r.type === 'ip_shift') bits.push((r.source_cidrs && r.source_cidrs.length) ? r.source_cidrs.join(' ') : '全部 IP');
+  else if (r.type === 'hash') bits.push('保留尾 ' + (r.keep_tail || 0) + ' 位');
+  else if (r.type === 'strip_images') bits.push('删除 docx/xlsx 图片（含页眉页脚）');
+  else bits.push(r.pattern || '(空 pattern)');
+  return bits.join(' · ');
+}
+
+function renderRules() {
   const box = $('#listRules');
   box.innerHTML = '';
+  $('#ruleCount').textContent = state.rules.length ? state.rules.length + ' 条' : '空';
   if (!state.rules.length) {
-    emptyState(box, '规则库是空的', '从内置案例挑一套，改完再保存成 rules.json。', '去看案例 →', () => showTab('cases'));
+    emptyState(box, '规则库是空的', '从下面「模板」挑一个，或点「+ 新增规则」。');
   }
   state.rules.forEach((r, i) => {
-    const d = document.createElement('div');
-    d.className = 'ritem' + (i === sel && tab === 'rules' ? ' on' : '');
-    const sw = document.createElement('span');
-    sw.className = 'sw' + (r.enabled !== false ? ' on' : '');
-    sw.onclick = e => { e.stopPropagation(); r.enabled = (r.enabled === false); renderList(); };
-    const nm = document.createElement('span');
-    nm.className = 'nm';
-    nm.textContent = r.desc || r.id || '(未命名)';
-    const n = document.createElement('span');
-    n.className = 'n';
-    n.textContent = r.type || '';
-    d.append(sw, nm, n);
-    d.onclick = () => { showTab('rules'); sel = i; renderAll(); };
+    const on = r.enabled !== false;
+    const d = el('div', 'ritem' + (i === sel ? ' on' : ''));
+    const tg = el('span', 'badge tg ' + (on ? 'on' : ''));
+    tg.textContent = on ? '启' : '停';
+    tg.title = on ? '点一下停用' : '点一下启用';
+    tg.onclick = e => {
+      e.stopPropagation();
+      r.enabled = !on;
+      markDirty();
+      renderRules();
+      renderQueue();
+    };
+    const txt = el('div', 'txt');
+    txt.append(el('div', 'nm', ruleName(r)), el('div', 'meta', metaOf(r)));
+    d.append(tg, txt);
+    d.onclick = () => selectRule(i);
     box.append(d);
   });
-  $('#tabRules').textContent = '规则库 ' + state.rules.length;
+  renderBadge();
+}
 
-  const cb = $('#listCases');
-  cb.innerHTML = '';
+function renderCases() {
+  const box = $('#listCases');
+  box.innerHTML = '';
   state.presets.forEach(p => {
-    const wrap = document.createElement('div');
-    const d = document.createElement('div');
-    d.className = 'case';
-    const nm = document.createElement('span');
-    nm.className = 'nm';
-    nm.textContent = p.name;
-    const b = document.createElement('span');
-    b.className = 'badge ' + (p.risk === '高' ? 'high' : p.risk === '中' ? 'mid' : 'low');
-    b.textContent = p.risk;
-    d.append(nm, b);
+    const d = el('div', 'case');
+    const h = el('div', 'h');
+    h.append(el('span', 'nm', p.name));
+    h.append(el('span', 'badge ' + (p.risk === '高' ? 'err' : p.risk === '中' ? 'warn' : 'on'), p.risk + '风险'));
+    d.append(h, el('div', 'd', (p.rules || []).length + ' 条 · ' + (p.desc || '')));
+    d.title = p.note || p.desc || '';
     d.onclick = () => loadPreset(p);
-    const desc = document.createElement('div');
-    desc.className = 'd';
-    desc.textContent = (p.rules || []).length + ' 条 · ' + p.desc;
-    wrap.append(d, desc);
-    cb.append(wrap);
+    box.append(d);
   });
-  $('#tabCases').textContent = '案例 ' + state.presets.length;
 }
 
-function showTab(name) {
-  tab = name;
-  $('#tabRules').classList.toggle('on', name === 'rules');
-  $('#tabCases').classList.toggle('on', name === 'cases');
-  $('#listRules').style.display = name === 'rules' ? '' : 'none';
-  $('#listCases').style.display = name === 'cases' ? '' : 'none';
+function markDirty() { dirty = true; renderBadge(); }
+function markClean() { dirty = false; renderBadge(); }
+
+function selectRule(i) {
+  sel = i;
+  probe = null;
+  renderRules();
+  renderEditor();
 }
 
-function field(label, value, onchange, mono) {
-  const w = document.createElement('div');
-  const l = document.createElement('label');
-  l.className = 'f';
-  l.textContent = label;
+function renderAll() { renderRules(); renderEditor(); renderQueue(); }
+
+/* ── 编辑 ─────────────────────────────── */
+function field(label, value, oninput, mono) {
+  const w = el('div');
+  w.append(el('label', 'f', label));
   const inp = document.createElement('input');
   inp.type = 'text';
   inp.value = value === undefined || value === null ? '' : value;
   if (mono) inp.style.fontFamily = 'ui-monospace,Consolas,monospace';
-  inp.oninput = () => onchange(inp.value);
-  w.append(l, inp);
+  inp.oninput = () => oninput(inp.value);
+  w.append(inp);
   return w;
 }
 
 function switchRow(label, get, set) {
-  const lab = document.createElement('label');
-  lab.className = 'row';
-  lab.style.gap = '4px';
-  const sw = document.createElement('span');
-  sw.className = 'sw' + (get() ? ' on' : '');
-  sw.onclick = () => { set(!get()); renderAll(); };
-  const sp = document.createElement('span');
-  sp.style.fontSize = '11.8px';
-  sp.textContent = label;
-  lab.append(sw, sp);
+  const lab = el('label', 'row');
+  lab.style.cssText = 'gap:5px;font-size:12px;color:#3d4451;width:auto';
+  const sw = el('span', 'sw' + (get() ? ' on' : ''));
+  sw.onclick = () => { set(!get()); markDirty(); renderEditor(); renderRules(); };
+  lab.append(sw, el('span', null, label));
   return lab;
+}
+
+let checkTimer = null;
+function scheduleCheck() {
+  clearTimeout(checkTimer);
+  const r = state.rules[sel];
+  if (!r || r.type === 'strip_images') return; // 结构型规则不扫文本
+  checkTimer = setTimeout(() => checkRule(r), 450);
+}
+
+async function checkRule(r) {
+  const line0 = $('#checkLine');
+  const demo0 = $('#demoLine');
+  if (r.type === 'strip_images') {
+    if (line0) {
+      line0.className = 'checkline';
+      line0.textContent = '✓ 结构型规则 · 只对 .docx / .xlsx 生效，其它文件自动跳过';
+    }
+    if (demo0) demo0.textContent = '';
+    return;
+  }
+  try {
+    const res = await api('/api/rule-check', {rule: r});
+    if (state.rules[sel] !== r) return;
+    const line = $('#checkLine');
+    const demo = $('#demoLine');
+    if (!line || !demo) return;
+    if (!res.ok) {
+      line.className = 'checkline bad';
+      line.textContent = '× ' + (res.error || '检查失败');
+      return;
+    }
+    const c = res.check;
+    if (!c.valid) {
+      line.className = 'checkline bad';
+      line.textContent = '× ' + (c.error || '规则不合法');
+      demo.textContent = '';
+      return;
+    }
+    line.className = 'checkline';
+    line.textContent = '✓ 样例校验通过' + (c.hits ? ' · 内置样本里命中 ' + c.hits + ' 处' : ' · 内置样本里没命中');
+    demo.innerHTML = '';
+    if (c.demo) {
+      demo.append(document.createTextNode('示例：' + c.demo.before + ' → '));
+      demo.append(el('b', null, c.demo.after === '' ? '（删除）' : c.demo.after));
+    } else {
+      demo.append(document.createTextNode('样本里没命中：换个 pattern，或直接单条试跑看真实数据。'));
+    }
+  } catch (e) { /* 编辑中的临时错误不打扰用户 */ }
 }
 
 function renderEditor() {
@@ -399,89 +604,454 @@ function renderEditor() {
   if (!r) {
     $('#editTitle').textContent = '编辑';
     $('#editHint').textContent = '';
-    box.innerHTML = '<div class="hint">左边选一条规则，或者从案例载入一套。</div>';
+    box.append(el('div', 'hint', '左栏选一条规则，或者从「模板」载入一套。'));
     return;
   }
-  $('#editTitle').textContent = '编辑：' + (r.desc || r.id || '(未命名)');
-  $('#editHint').textContent = r.enabled === false ? '已停用' : '启用中';
+  const on = r.enabled !== false;
+  const title = $('#editTitle');
+  title.innerHTML = '';
+  title.append(document.createTextNode('编辑：' + ruleName(r) + ' '));
+  title.append(el('span', 'badge ' + (on ? 'on' : ''), on ? '启用' : '停用'));
+  $('#editHint').textContent = '改动即时生效，记得保存规则库';
 
+  const top = el('div', 'split');
+  const tw = el('div');
+  tw.append(el('label', 'f', '类型'));
   const typeSel = document.createElement('select');
-  ['regex', 'literal', 'digits', 'ip_shift', 'hash'].forEach(t => {
-    const o = document.createElement('option');
-    o.value = t; o.textContent = t; o.selected = (r.type || 'regex') === t;
-    typeSel.append(o);
-  });
-  typeSel.onchange = () => { r.type = typeSel.value; renderAll(); };
-  const tw = document.createElement('div');
-  const tl = document.createElement('label');
-  tl.className = 'f'; tl.textContent = '类型';
-  tw.append(tl, typeSel);
+  [['regex', 'regex 正则'], ['literal', 'literal 字面'], ['digits', 'digits 定长数字'], ['ip_shift', 'ip_shift IP 位移'], ['hash', 'hash 哈希'], ['strip_images', 'strip_images 删除图片']]
+    .forEach(([v, t]) => {
+      const o = document.createElement('option');
+      o.value = v; o.textContent = t; o.selected = (r.type || 'regex') === v;
+      typeSel.append(o);
+    });
+  typeSel.onchange = () => {
+    r.type = typeSel.value;
+    markDirty(); probe = null;
+    renderRules(); renderEditor();
+  };
+  tw.append(typeSel);
+  const iw = el('div');
+  iw.append(el('label', 'f', 'id'));
+  const idIn = document.createElement('input');
+  idIn.type = 'text';
+  idIn.value = r.id || '';
+  idIn.style.fontFamily = 'ui-monospace,Consolas,monospace';
+  idIn.oninput = () => { r.id = idIn.value.trim(); markDirty(); scheduleCheck(); };
+  iw.append(idIn);
+  top.append(tw, iw);
+  box.append(top);
 
-  const two = document.createElement('div');
-  two.className = 'split';
-  two.append(
-    field('id', r.id, v => r.id = v.trim(), true),
-    field('显示名', r.desc, v => r.desc = v)
-  );
-  box.append(tw, two);
+  box.append(field('显示名', r.desc, v => { r.desc = v; markDirty(); renderRules(); renderQueue(); }));
 
   if (r.type === 'literal') {
-    box.append(field('find（要替换的字面串）', r.find, v => r.find = v, true));
-  } else {
-    box.append(field('pattern（RE2，无 lookbehind）', r.pattern, v => r.pattern = v, true));
+    box.append(field('find（要替换的字面串）', r.find, v => { r.find = v; markDirty(); scheduleCheck(); }, true));
+  } else if (r.type === 'regex' || r.type === 'hash') {
+    box.append(field('pattern（RE2，不支持 lookbehind）', r.pattern, v => { r.pattern = v; markDirty(); scheduleCheck(); }, true));
+  } else if (r.type === 'digits') {
+    box.append(el('div', 'hint', 'digits 自动匹配连续的 N 位数字（位数看下面的 length），不会切开更长的数字串。'));
+  } else if (r.type === 'ip_shift') {
+    box.append(el('div', 'hint', 'ip_shift 自动匹配 IPv4，只改落在 source_cidrs 里的地址；前后紧挨数字或点的版本号不会被误伤。'));
+  } else if (r.type === 'strip_images') {
+    box.append(el('div', 'hint', '结构型规则：不扫文本，处理 .docx / .xlsx 时把图片整张删掉——正文、页眉页脚、脚注尾注批注、工作表单元格图片都算；图表、SmartArt、文本框、嵌入对象不动。'));
   }
-  box.append(field('replace（{stars} {keep:N} {head:N} {len} {gN}，空=删除）', r.replace, v => r.replace = v, true));
 
-  if (r.type === 'digits') {
-    box.append(field('length（位数）', r.length, v => r.length = parseInt(v) || 0));
+  const isStrip = r.type === 'strip_images';
+  const check = el('div', 'checkline', '检查中…');
+  check.id = 'checkLine';
+  const demo = el('div', 'demo');
+  demo.id = 'demoLine';
+  box.append(check, demo);
+  if (isStrip) {
+    check.textContent = '✓ 结构型规则 · 只对 .docx / .xlsx 生效，其它文件自动跳过';
   }
+
+  if (r.type === 'strip_images') {
+    box.append(el('div', 'hint', '不需要 replace 模板：命中的图片直接整张移除，媒体文件、关系项、页眉页脚的 &G 占位一起清掉。'));
+  } else if (r.type === 'ip_shift' || r.type === 'hash') {
+    box.append(el('div', 'hint', r.type === 'ip_shift'
+      ? '替换值由「首段 + 偏移」算出来，不需要 replace 模板；同一份内容跑两次结果会变。'
+      : '替换值由 SHA-256 做等长变形，不需要 replace 模板；同一份内容跑两次结果会变。'));
+  } else {
+    const rw = el('div');
+    rw.append(el('label', 'f', 'replace 模板'));
+    const rr = el('div', 'row');
+    const rep = document.createElement('input');
+    rep.type = 'text';
+    rep.value = r.replace || '';
+    rep.style.flex = '1';
+    rep.style.fontFamily = 'ui-monospace,Consolas,monospace';
+    rep.oninput = () => { r.replace = rep.value; markDirty(); scheduleCheck(); };
+    const quick = document.createElement('select');
+    quick.style.width = '124px';
+    [['{stars}', '{stars} 全遮'], ['{keep:4}', '{keep:4} 留后4'], ['{head:3}', '{head:3} 留前3'], ['{len}', '{len} 原长度'], ['{g1}', '{g1} 第一组']]
+      .forEach(([v, t]) => {
+        const o = document.createElement('option');
+        o.value = v; o.textContent = t;
+        quick.append(o);
+      });
+    quick.onchange = () => { r.replace = quick.value; rep.value = quick.value; markDirty(); scheduleCheck(); };
+    rr.append(rep, quick);
+    rw.append(rr);
+    box.append(rw);
+  }
+
+  if (r.type === 'digits') box.append(field('length（位数）', r.length, v => { r.length = parseInt(v) || 0; markDirty(); scheduleCheck(); }));
   if (r.type === 'ip_shift') {
-    box.append(field('first_octet（首段固定，留空=不固定）', r.first_octet, v => r.first_octet = v === '' ? null : parseInt(v)));
-    box.append(field('offset（其余段统一偏移）', r.offset, v => r.offset = v === '' ? null : parseInt(v)));
+    box.append(field('first_octet（首段固定，留空=不固定）', r.first_octet, v => { r.first_octet = v === '' ? null : parseInt(v); markDirty(); scheduleCheck(); }));
+    box.append(field('offset（其余段统一偏移）', r.offset, v => { r.offset = v === '' ? null : parseInt(v); markDirty(); scheduleCheck(); }));
     box.append(field('source_cidrs（逗号分隔，只动这些网段）', (r.source_cidrs || []).join(','),
-      v => r.source_cidrs = v.split(',').map(s => s.trim()).filter(Boolean), true));
+      v => { r.source_cidrs = v.split(',').map(s => s.trim()).filter(Boolean); markDirty(); scheduleCheck(); }, true));
   }
   if (r.type === 'hash') {
-    box.append(field('keep_tail（保留尾部几位）', r.keep_tail, v => r.keep_tail = parseInt(v) || 0));
-    box.append(field('salt（隔离项目用，可留空）', r.salt, v => r.salt = v));
+    box.append(field('keep_tail（保留尾部几位）', r.keep_tail, v => { r.keep_tail = parseInt(v) || 0; markDirty(); scheduleCheck(); }));
+    box.append(field('salt（隔离项目用，可留空）', r.salt, v => { r.salt = v; markDirty(); scheduleCheck(); }));
   }
 
-  const flags = document.createElement('div');
-  flags.className = 'row';
-  flags.style.cssText = 'margin-top:9px;gap:14px;flex-wrap:wrap';
+  // 只有这些开关对当前类型有意义才显示：digits / ip_shift 的边界是内置的
+  const flags = el('div', 'row');
+  flags.style.cssText = 'margin-top:9px;gap:16px;flex-wrap:wrap';
   if (r.type === 'literal') {
-    flags.append(switchRow('word 边界', () => r.boundary === 'word', v => r.boundary = v ? 'word' : 'none'));
-  } else {
-    flags.append(switchRow('digit_boundary', () => !!r.digit_boundary, v => r.digit_boundary = v));
+    flags.append(switchRow('word 边界', () => r.boundary === 'word', v => { r.boundary = v ? 'word' : 'none'; scheduleCheck(); }));
+  } else if (r.type === 'regex' || r.type === 'hash') {
+    flags.append(switchRow('digit_boundary', () => !!r.digit_boundary, v => { r.digit_boundary = v; scheduleCheck(); }));
   }
-  flags.append(switchRow('ignore_case', () => !!r.ignore_case, v => r.ignore_case = v));
-  if (r.type === 'digits') flags.append(switchRow('skip_valid_date', () => !!r.skip_valid_date, v => r.skip_valid_date = v));
-  box.append(flags);
+  if (r.type === 'literal' || r.type === 'regex' || r.type === 'hash') {
+    flags.append(switchRow('ignore_case', () => !!r.ignore_case, v => { r.ignore_case = v; scheduleCheck(); }));
+  }
+  if (r.type === 'digits') flags.append(switchRow('skip_valid_date', () => !!r.skip_valid_date, v => { r.skip_valid_date = v; scheduleCheck(); }));
+  if (flags.children.length) box.append(flags);
 
-  const acts = document.createElement('div');
-  acts.className = 'row';
+  // 单条试跑
+  const h = el('div', 'ph');
+  h.style.padding = '12px 0 4px';
+  h.append(el('span', null, '单条试跑（这条规则单独跑）'));
+  h.append(el('span', 'sp'));
+  const probeBtn = el('button', 'btn blue mini', '试跑');
+  probeBtn.onclick = () => probeRule();
+  h.append(probeBtn);
+  box.append(h);
+  const phint = el('div', 'hint');
+  phint.id = 'probeHint';
+  box.append(phint);
+  const pbox = el('div', 'probe');
+  pbox.id = 'probeBox';
+  pbox.style.display = 'none';
+  box.append(pbox);
+  renderProbe();
+
+  const acts = el('div', 'row');
   acts.style.marginTop = '10px';
-  const del = document.createElement('button');
-  del.className = 'btn';
-  del.textContent = '删除这条';
+  const addQ = el('button', 'btn blue', '加入待执行 →');
+  addQ.onclick = () => enqueue();
+  const copy = el('button', 'btn', '复制一条');
+  copy.onclick = () => {
+    const cp = JSON.parse(JSON.stringify(r));
+    cp.id = (cp.id || 'rule') + '-copy';
+    cp.desc = (cp.desc || '规则') + ' 副本';
+    state.rules.splice(sel + 1, 0, cp);
+    sel += 1;
+    markDirty(); renderAll();
+  };
+  const del = el('button', 'btn', '删除');
   del.style.cssText = 'color:#cf222e;border-color:#f0c8c8';
-  del.onclick = () => { state.rules.splice(sel, 1); sel = Math.max(0, sel - 1); renderAll(); };
-  acts.append(del);
+  del.onclick = () => {
+    if (!confirm('删掉规则「' + ruleName(r) + '」？（保存后才会写回文件）')) return;
+    state.rules.splice(sel, 1);
+    sel = Math.max(0, Math.min(sel, state.rules.length - 1));
+    probe = null;
+    markDirty(); renderAll();
+  };
+  acts.append(addQ, copy, el('span', 'sp'), del);
   box.append(acts);
+
+  scheduleCheck();
 }
 
-function renderAll() { renderList(); renderEditor(); }
-
-async function loadPreset(p) {
-  const list = p.rules || [];
-  if (state.rules.length && !confirm('用案例「' + p.name + '」的 ' + list.length + ' 条规则替换当前规则库？\n（想留底就先点右上角「保存规则库」）')) return;
-  state.rules = JSON.parse(JSON.stringify(list));
-  loadedPreset = p.name;
-  sel = 0;
-  showTab('rules');
-  renderAll();
-  banner('warn', '已载入案例「' + p.name + '」（' + list.length + ' 条 · ' + p.risk + '风险）。' + p.note);
+async function probeRule() {
+  const r = state.rules[sel];
+  if (!r) return;
+  const target = $('#target').value.trim();
+  if (!target) { banner('err', '先选目标目录或文件，再试跑'); return; }
+  const seq = ++probeSeq;
+  const hint = $('#probeHint');
+  if (hint) hint.textContent = '试跑中…';
+  try {
+    const res = await api('/api/preview', {target, rules: [r], recursive: opts.recursive, limit: opts.limit});
+    if (seq !== probeSeq) return;
+    if (!res.ok) {
+      if ($('#probeHint')) $('#probeHint').textContent = '';
+      banner('err', res.error || '试跑失败');
+      return;
+    }
+    probe = res.result;
+    renderProbe();
+  } catch (e) {
+    banner('err', '试跑失败：' + e.message);
+  }
 }
+
+function renderProbe() {
+  const hint = $('#probeHint');
+  const box = $('#probeBox');
+  if (!hint || !box) return;
+  if (!probe) {
+    box.style.display = 'none';
+    hint.textContent = '选好目标目录后点「试跑」，看这条规则在真实数据里命中什么。';
+    return;
+  }
+  hint.textContent = '命中 ' + probe.hits + ' 处 · ' + (probe.hitFiles || 0) + ' 个文件有命中（共扫描 ' + probe.files + ' 个）· ' + probe.elapsedMs + ' ms'
+    + (probe.truncated ? '（只扫了前 ' + opts.limit + ' 个文件）' : '');
+  if (!probe.rows || !probe.rows.length) {
+    box.style.display = 'none';
+    return;
+  }
+  box.style.display = 'block';
+  box.innerHTML = '';
+  const t = el('table');
+  const thead = el('thead');
+  const hr = el('tr');
+  [['位置', '118px'], ['原文 → 替换后 / 上下文', '']].forEach(([n, w]) => {
+    const th = el('th', null, n);
+    if (w) th.style.width = w;
+    hr.append(th);
+  });
+  thead.append(hr);
+  const tb = el('tbody');
+  probe.rows.slice(0, 60).forEach(x => {
+    const tr = el('tr');
+    const c1 = el('td');
+    c1.append(el('div', 'mono', baseName(x.file)));
+    c1.append(el('div', 'floc', x.loc || ''));
+    const c2 = el('td');
+    const line = el('div');
+    line.append(el('span', null, x.before || '（空）'));
+    line.append(document.createTextNode(' → '));
+    line.append(el('b', null, x.after === '' ? '（删除）' : (x.after || '（空）')));
+    if (x.count > 1) line.append(el('span', 'hint', ' ×' + x.count));
+    c2.append(line, ctxCell(x.ctx));
+    tr.append(c1, c2);
+    tb.append(tr);
+  });
+  t.append(thead, tb);
+  box.append(t);
+  if (probe.rows.length > 60) {
+    box.append(el('div', 'hint', '只显示前 60 行，完整明细看「空跑」或导出的 HTML 报告。'));
+  }
+}
+
+/* ── 待执行队列 ───────────────────────── */
+function ruleSig(rules) {
+  return (rules || []).map(r => {
+    const o = {};
+    Object.keys(r).sort().forEach(k => { o[k] = r[k]; });
+    return JSON.stringify(o);
+  }).join('\u0001');
+}
+
+function queueBadge(q) {
+  if (!activeRules(q.rules).length) return {cls: 'err', text: '无启用规则'};
+  if (ruleSig(q.rules) !== ruleSig(state.rules)) return {cls: 'warn', text: '规则库已改'};
+  return {cls: 'on', text: '一致'};
+}
+
+function renderQueue() {
+  const box = $('#queueList');
+  box.innerHTML = '';
+  const numerals = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩'];
+
+  queue.forEach((q, i) => {
+    const b = queueBadge(q);
+    const d = el('div', 'q');
+    const x = el('span', 'x', '×');
+    x.title = '移出队列';
+    x.onclick = () => { queue.splice(i, 1); renderQueue(); };
+    const h = el('div', 'h');
+    h.append(el('span', 'no', numerals[i] || ('#' + (i + 1))));
+    h.append(el('span', 't', q.name));
+    if (i === 0) h.append(el('span', 'badge num', '优先'));
+    h.append(el('span', 'badge ' + b.cls, b.text));
+    d.append(x, h);
+
+    const act = activeRules(q.rules);
+    const m = el('div', 'm');
+    m.append(document.createTextNode('启用 ' + act.length + '/' + (q.rules || []).length + ' 条规则'));
+    const names = act.slice(0, 3).map(ruleName).join('、');
+    if (names) m.append(document.createTextNode(' · ' + names + (act.length > 3 ? ' 等' : '')));
+    if (q.est) m.append(document.createTextNode(' · 预计 ' + q.est.hits + ' 处 / ' + q.est.files + ' 文件'));
+    d.append(m);
+
+    const acts = el('div', 'acts');
+    const up = el('button', 'btn mini', '上移');
+    up.disabled = i === 0;
+    up.onclick = () => { if (i > 0) { const t = queue[i - 1]; queue[i - 1] = queue[i]; queue[i] = t; clearEst(); renderQueue(); } };
+    const down = el('button', 'btn mini', '下移');
+    down.disabled = i === queue.length - 1;
+    down.onclick = () => { if (i < queue.length - 1) { const t = queue[i + 1]; queue[i + 1] = queue[i]; queue[i] = t; clearEst(); renderQueue(); } };
+    const pv = el('button', 'btn mini', '预览');
+    pv.onclick = () => previewQueueItem(i);
+    acts.append(up, down, pv);
+    if (b.cls === 'warn') {
+      const sync = el('button', 'btn mini', '同步规则库');
+      sync.onclick = () => {
+        q.rules = JSON.parse(JSON.stringify(state.rules));
+        delete q.est;
+        renderQueue();
+        banner('ok', '已把「' + q.name + '」同步成当前规则库');
+      };
+      acts.append(sync);
+    }
+    d.append(acts);
+    box.append(d);
+  });
+
+  // 合计
+  const total = el('div', 'q total');
+  const th = el('div', 'h');
+  th.append(el('span', 't', '合计'), el('span', 'sp'));
+  const actQ = queue.length ? queue : [{rules: state.rules}];
+  const totalActive = actQ.reduce((n, q) => n + activeRules(q.rules).length, 0);
+  const ready = queue.length && queue.every(q => q.est);
+  const estHits = ready ? queue.reduce((n, q) => n + q.est.hits, 0) : null;
+  const estFiles = ready ? queue.reduce((n, q) => n + q.est.files, 0) : null;
+  th.append(el('span', 'badge num', totalActive + ' 条规则' + (estHits !== null ? ' · ' + estFiles + ' 文件 · ' + estHits + ' 处' : '')));
+  total.append(th);
+  const tm = el('div', 'm');
+  tm.textContent = queue.length
+    ? '顺序执行：同一文件被多套规则命中时合并成一次改写，最后只写一次盘。'
+    : '队列是空的：空跑 / 执行会用当前规则库（' + activeRules(state.rules).length + ' 条启用）。';
+  total.append(tm);
+  box.append(total);
+  $('#queueHint').textContent = queue.length ? queue.length + ' 套' : '未排队';
+  renderTask();
+}
+
+/* ── 本次任务摘要（右栏 + 底部操作条）────── */
+function renderTask() {
+  const target = $('#target').value.trim();
+  const steps = stepsForRun();
+  const act = steps.reduce((n, st) => n + activeRules(st.rules).length, 0);
+  const card = $('#taskCard');
+  card.innerHTML = '';
+  const row = (k, v, full) => {
+    const d = el('div', 'kvrow');
+    const vv = el('span', 'v', v);
+    if (full) vv.title = full;
+    d.append(el('span', 'k', k), vv);
+    card.append(d);
+  };
+  row('目标', target ? baseName(target) : '未选择', target);
+  row('规则', (queue.length ? queue.length + ' 套' : '当前规则库') + ' · 启用 ' + act + ' 条');
+  row('预演', lastRun
+    ? (lastRun.dry === false ? '已执行 · ' + (lastRun.written || 0) + ' 文件' : lastRun.hits + ' 处 · ' + lastRun.files + ' 文件')
+    : '未预演');
+  row('备份', {zip: '整体 .bak.zip', file: '按文件 .bak', none: '不备份'}[opts.backup] || opts.backup);
+  row('报告', opts.report || '（不导出）');
+
+  const bits = [target ? baseName(target) : '未选目标', queue.length ? queue.length + ' 套规则' : act + ' 条规则'];
+  bits.push({zip: '整体备份', file: '按文件备份', none: '不备份'}[opts.backup] || opts.backup);
+  $('#taskLine').textContent = bits.join(' · ');
+
+  const fresh = previewFresh();
+  const done = !!(lastRun && lastRun.dry === false);
+  const stale = !!lastRun && !fresh && !done;
+  $('#execBtn').disabled = !fresh;
+  $('#execBtn').title = fresh ? '执行（写前会再确认一次）' : '先空跑一次，确认命中面后再执行';
+  const st = $('#taskState');
+  st.className = 'badge ' + (done ? 'on' : fresh ? 'num' : 'warn');
+  st.textContent = done ? '已执行' : fresh ? '已预演' : stale ? '需重新空跑' : '未预演';
+  renderSteps();
+}
+
+function clearEst() { queue.forEach(q => delete q.est); }
+
+function enqueue() {
+  if (!state.rules.length) { banner('err', '规则库是空的，先从模板载入一套'); return; }
+  const act = activeRules(state.rules);
+  if (!act.length) { banner('err', '当前规则库没有启用的规则'); return; }
+  let name = loadedPreset;
+  if (!name) name = act.length === 1 ? ruleName(act[0]) : '策略 ' + (queue.length + 1);
+  if (queue.some(q => q.name === name)) name = name + ' #' + (queue.length + 1);
+  queue.push({name, rules: JSON.parse(JSON.stringify(state.rules))});
+  renderQueue();
+  banner('ok', '已加入待执行：' + name + '（' + act.length + ' 条启用规则）');
+}
+
+async function previewQueueItem(i) {
+  const q = queue[i];
+  if (!q) return;
+  const target = $('#target').value.trim();
+  if (!target) { banner('err', '先选目标目录或文件'); return; }
+  try {
+    const res = await api('/api/preview', {target, rules: q.rules, recursive: opts.recursive, limit: opts.limit});
+    if (!res.ok) { banner('err', res.error || '预览失败'); return; }
+    setReportCount(res.result.hits);
+    $('#reportMeta').textContent = '预览：' + q.name + ' · ' + target;
+    $('#reportMeta').title = target;
+    $('#showReportBtn').disabled = false;
+    renderResult(res.result, '预览：' + q.name);
+    showPane('report');
+  } catch (e) { banner('err', '预览失败：' + e.message); }
+}
+
+/* ── 目标与选项 ───────────────────────── */
+function setTarget(path) {
+  $('#target').value = path || '';
+  clearEst();
+  updateTargetHint();
+  renderQueue();
+}
+
+function updateTargetHint() { renderSteps(); }
+
+$('#target').oninput = () => { clearEst(); updateTargetHint(); renderQueue(); };
+
+function renderOpts() {
+  $('#swRec').classList.toggle('on', opts.recursive);
+  $('#inLimit').value = opts.limit;
+  $('#selBackup').value = opts.backup;
+  $('#inReport').value = opts.report;
+}
+$('#swRec').onclick = () => { opts.recursive = !opts.recursive; renderOpts(); clearEst(); renderQueue(); };
+$('#inLimit').oninput = e => { opts.limit = parseInt(e.target.value) || 200; clearEst(); renderQueue(); };
+$('#selBackup').onchange = e => { opts.backup = e.target.value; };
+$('#inReport').oninput = e => { opts.report = e.target.value; };
+
+async function pickNative(mode) {
+  try {
+    const res = await api('/api/pick', {mode, initial: $('#target').value.trim()});
+    if (res.ok) { setTarget(res.path); return; }
+    if (res.canceled) return;
+    if (res.unsupported) { openPicker(); return; }
+    banner('err', res.error || '选择失败');
+  } catch (e) {
+    banner('err', '选择失败：' + e.message);
+  }
+}
+$('#pickDirBtn').onclick = () => pickNative('dir');
+$('#pickFileBtn').onclick = () => pickNative('file');
+
+/* ── 兜底目录浏览器 ───────────────────── */
+function openPicker() {
+  pickMode = 'target';
+  $('#picker').classList.add('on');
+  ls($('#target').value.trim() || '');
+}
+$('#browseBtn').onclick = openPicker;
+$('#pickCancel').onclick = () => $('#picker').classList.remove('on');
+$('#pickUp').onclick = () => ls(pick.parent || '');
+$('#pickRoots').onclick = () => ls('');
+$('#pickOk').onclick = () => {
+  if (pick.path) {
+    if (pickMode === 'saveas') {
+      $('#saDir').value = pick.path;
+      $('#saveAsBox').classList.add('on');
+    } else {
+      setTarget(pick.path);
+    }
+  }
+  $('#picker').classList.remove('on');
+};
+$('#picker').onclick = e => { if (e.target.id === 'picker') $('#picker').classList.remove('on'); };
 
 async function ls(path) {
   const res = await api('/api/ls' + (path ? '?path=' + encodeURIComponent(path) : ''));
@@ -493,234 +1063,195 @@ async function ls(path) {
   $('#pickNote').textContent = l.note || '';
   const box = $('#pickList');
   box.innerHTML = '';
-  if (!l.dirs.length) {
-    const d = document.createElement('div');
-    d.className = 'empty';
-    d.textContent = l.path ? '这个目录下没有子目录' : '没有可用根目录';
-    box.append(d);
-  }
+  if (!l.dirs.length) box.append(el('div', 'empty', l.path ? '这个目录下没有子目录' : '没有可用根目录'));
   l.dirs.forEach(x => {
-    const d = document.createElement('div');
-    d.className = 'pitem';
-    const ic = document.createElement('span');
-    ic.textContent = /^[A-Za-z]:[\\/]$/.test(x.path) ? '💽' : '📁';
-    const nm = document.createElement('span');
-    nm.className = 'nm';
-    nm.textContent = x.name;
-    d.append(ic, nm);
+    const d = el('div', 'pitem');
+    d.append(el('span', null, /^[A-Za-z]:[\\/]$/.test(x.path) ? '💽' : '📁'));
+    d.append(el('span', 'nm', x.name));
     d.onclick = () => ls(x.path);
     box.append(d);
   });
 }
 
-$('#browseBtn').onclick = () => {
-  pickMode = 'target';
-  $('#picker').classList.add('on');
-  ls($('#target').value.trim() || '');
-};
-$('#pickCancel').onclick = () => $('#picker').classList.remove('on');
-$('#pickUp').onclick = () => ls(pick.parent || '');
-$('#pickRoots').onclick = () => ls('');
-$('#pickOk').onclick = () => {
-  if (pick.path) {
-    if (pickMode === 'saveas') {
-      $('#saDir').value = pick.path;
-      $('#saveAsBox').classList.add('on');
-    } else {
-      $('#target').value = pick.path;
-    }
-  }
-  $('#picker').classList.remove('on');
-};
-$('#picker').onclick = e => { if (e.target.id === 'picker') $('#picker').classList.remove('on'); };
-
-function renderOpts() {
-  $('#swRec').classList.toggle('on', opts.recursive);
-  $('#inLimit').value = opts.limit;
-  $('#optSummary').textContent = (opts.recursive ? '递归' : '不递归') + ' · 上限 ' + opts.limit;
-  document.querySelectorAll('.radio[data-b]').forEach(r => r.classList.toggle('on', r.dataset.b === opts.backup));
-}
-$('#gearBtn').onclick = () => { $('#maskOpt').classList.add('on'); $('#drawer').classList.add('on'); };
-$('#closeOpt').onclick = () => { $('#maskOpt').classList.remove('on'); $('#drawer').classList.remove('on'); };
-$('#maskOpt').onclick = () => { $('#maskOpt').classList.remove('on'); $('#drawer').classList.remove('on'); };
-$('#swRec').onclick = () => { opts.recursive = !opts.recursive; renderOpts(); };
-$('#inLimit').oninput = e => { opts.limit = parseInt(e.target.value) || 200; renderOpts(); };
-document.querySelectorAll('.radio[data-b]').forEach(r => {
-  r.onclick = () => { opts.backup = r.dataset.b; renderOpts(); };
-});
-
-function activeRules(rules) {
-  return (rules || []).filter(r => r.enabled !== false);
+/* ── 空跑 / 执行 ──────────────────────── */
+function runSig() {
+  const all = [].concat(...stepsForRun().map(st => st.rules || []));
+  return ruleSig(all) + '|' + $('#target').value.trim() + '|' + opts.backup + '|' + opts.report + '|' + opts.recursive + '|' + opts.limit;
 }
 
-// stepsForRun：队列为空时用当前规则库，避免「忘了加队列」就跑不动
+function previewFresh() {
+  return !!(lastRun && lastRun.dry === true && lastRun.sig === runSig());
+}
+
 function stepsForRun() {
   if (queue.length) return queue.map(q => ({name: q.name, rules: q.rules}));
   return [{name: '当前规则库', rules: state.rules}];
 }
 
-async function runFlow(dry) {
+async function runFlow(dry, forceOpen) {
   const target = $('#target').value.trim();
-  if (!target) { banner('err', '先选目标路径（「浏览…」）'); return null; }
+  if (!target) { banner('err', '先选目标目录或文件'); return null; }
   const steps = stepsForRun();
   if (!steps.some(st => activeRules(st.rules).length)) {
-    banner('err', '没有启用的规则，先启用几条或从案例载入一套');
+    banner('err', '没有启用的规则，先启用几条或从模板载入一套');
     return null;
   }
   $('#runBtn').disabled = true;
   $('#execBtn').disabled = true;
+  if (dry) $('#runBtn').textContent = '空跑中…'; else $('#execBtn').textContent = '执行中…';
   $('#prevHint').textContent = dry ? '空跑中…' : '执行中…';
   try {
     const res = await api('/api/run', {
       target, steps, recursive: opts.recursive, limit: opts.limit,
-      backup: opts.backup, report: opts.report, dry, open: !dry
+      backup: opts.backup, report: opts.report, dry, open: forceOpen || !dry
     });
     if (!res.ok) { banner('err', res.error || '执行失败'); return null; }
-    renderPreview(res.result);
+    const r = res.result;
+    r.sig = runSig();
+    r.at = Date.now();
+    lastRun = r;
+    renderTask();
+    $('#reportMeta').textContent = (dry ? '空跑' : '执行') + ' · ' + target + ' · ' + fmtTime(new Date());
+    $('#reportMeta').title = target;
+    $('#showReportBtn').disabled = false;
+    if (dry && queue.length && r.steps) {
+      r.steps.forEach((st, i) => { if (queue[i]) queue[i].est = {hits: st.hits, files: st.files}; });
+      renderQueue();
+    }
+    renderResult(r, dry ? '空跑结果' : '执行结果');
+    showPane('report');
     if (dry) {
-      banner('ok', '空跑完成：扫描 ' + res.result.files + ' 个文件 · 命中 ' + res.result.hits + ' 处，未写盘。');
+      banner('ok', '空跑完成：扫描 ' + r.files + ' 个文件 · 命中 ' + r.hits + ' 处，未写盘。'
+        + (r.report ? ' 报告：' + r.report : ''));
     } else {
-      const r = res.result;
       banner('ok', '已写入 ' + r.written + ' 个文件（' + r.hits + ' 处）'
         + (r.failed ? '，失败 ' + r.failed + ' 个' : '')
-        + (r.backup ? '，整体备份 ' + r.backup.split(/[\/]/).pop() : ''));
+        + (r.backup ? '，整体备份 ' + baseName(r.backup) : ''));
     }
-    return res.result;
+    return r;
   } catch (e) {
     banner('err', '请求失败：' + e.message);
     return null;
   } finally {
     $('#runBtn').disabled = false;
-    $('#execBtn').disabled = false;
-    $('#prevHint').textContent = '';
+    renderTask();
+    $('#runBtn').textContent = '空跑';
+    $('#execBtn').textContent = '执行…';
+    $('#prevHint').textContent = lastRun ? lastRun.elapsedMs + ' ms' : '';
   }
 }
 
-function renderPreview(r) {
-  $('#prevHint').textContent = r.elapsedMs + ' ms';
+function renderResult(r, title) {
   const sum = $('#summary');
   sum.innerHTML = '';
-  const line = document.createElement('div');
-  line.className = 'hint';
-  line.textContent = '扫描 ' + r.files + ' 个文件 · 命中 ' + r.hits + ' 处 · ' + r.rows.length + ' 行明细'
-    + (r.truncated ? '（已截断，先缩小范围）' : '');
+  const hitFiles = (r.hitFiles !== undefined && r.hitFiles !== null)
+    ? r.hitFiles
+    : new Set((r.rows || []).map(x => x.file)).size;
+  const line = el('div', 'line');
+  line.append(el('b', null, title || '结果'));
+  line.append(document.createTextNode('：扫描 ' + r.files + ' 个文件，其中 ' + hitFiles + ' 个命中 '));
+  line.append(el('b', null, String(r.hits)));
+  line.append(document.createTextNode(' 处 · ' + (r.rows || []).length + ' 条明细'
+    + (r.truncated ? '（达到扫描上限，先缩小范围）' : '')));
   sum.append(line);
+
   if (r.steps && r.steps.length > 1) {
-    const sd = document.createElement('div');
-    sd.className = 'hint';
-    sd.textContent = '按顺序：' + r.steps.map(x => x.name + ' ' + x.hits + ' 处').join('  →  ');
+    const sd = el('div', 'line');
+    sd.textContent = '按顺序：' + r.steps.map(x => x.name + ' ' + x.hits + ' 处').join('  →  ') + '（同一文件合并成一次改写）';
     sum.append(sd);
   }
-  if (!r.dry) {
-    const wd = document.createElement('div');
-    wd.className = 'hint';
+  if (r.dry === false && r.written !== undefined && r.written !== null) {
+    const wd = el('div', 'line');
     wd.style.color = r.failed ? '#cf222e' : '#1a7f37';
     wd.textContent = '已写入 ' + r.written + ' 个文件' + (r.failed ? '，失败 ' + r.failed + ' 个' : '')
-      + (r.backup ? ' · 整体备份 ' + r.backup : '');
+      + (r.backup ? ' · 整体备份 ' + r.backup : '') + (r.report ? ' · 报告 ' + r.report : '');
     sum.append(wd);
   }
-  (r.problems || []).slice(0, 5).forEach(p => {
-    const d = document.createElement('div');
-    d.className = 'hint';
+  (r.problems || []).slice(0, 6).forEach(p => {
+    const d = el('div', 'line');
     d.style.color = '#9a6700';
     d.textContent = '· ' + p;
     sum.append(d);
   });
 
   const wrap = $('#rowsWrap');
-  wrap.style.display = 'block';
   wrap.innerHTML = '';
-  const t = document.createElement('table');
-  t.innerHTML = '<thead><tr><th style="width:150px">文件 / 位置</th><th style="width:54px">规则</th><th>原文 → 替换后</th><th>上下文</th></tr></thead>';
-  const tb = document.createElement('tbody');
-  r.rows.forEach(x => {
-    const tr = document.createElement('tr');
-    const c1 = document.createElement('td');
-    c1.style.cssText = 'font-family:ui-monospace,Consolas,monospace;max-width:150px';
-    const rel = x.file || '';
-    const seg = rel.split(/[\/]/);
-    const base = seg.pop() || '(未知)';
-    const dir = seg.join('/');
-    const fname = document.createElement('div');
-    fname.style.cssText = 'font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
-    fname.textContent = base;
-    fname.title = rel;
-    const floc = document.createElement('div');
-    floc.style.cssText = 'font-size:10px;color:#8b949e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
-    floc.textContent = (x.loc || '') + (dir ? ' · ' + dir : '');
-    floc.title = rel;
-    c1.append(fname, floc);
-    const c2 = document.createElement('td'); c2.textContent = x.rule;
-    const c3 = document.createElement('td'); c3.style.fontSize = '11px';
-    const s1 = document.createElement('span'); s1.style.color = '#cf222e'; s1.textContent = x.before || '（空）';
-    const s2 = document.createElement('b'); s2.style.color = '#1a7f37'; s2.textContent = x.after || '（空）';
-    c3.append(s1, document.createTextNode(' → '), s2);
-    const c4 = document.createElement('td'); c4.style.cssText = 'font-size:11px;color:#3d4451';
-    c4.innerHTML = (x.ctx || '').replace(/⟦/g, '<mark>').replace(/⟧/g, '</mark>');
+  wrap.style.display = 'block';
+  if (!r.rows || !r.rows.length) {
+    wrap.append(el('div', 'hint', '没有命中。换个规则、放宽 pattern，或确认目标目录里真有这些数据。'));
+    return;
+  }
+  const t = el('table');
+  const thead = el('thead');
+  const hr = el('tr');
+  [['文件 / 位置', '200px'], ['规则', '88px'], ['原文 → 替换后', '300px'], ['上下文', '']].forEach(([n, w]) => {
+    const th = el('th', null, n);
+    if (w) th.style.width = w;
+    hr.append(th);
+  });
+  thead.append(hr);
+  const tb = el('tbody');
+  r.rows.slice(0, 400).forEach(x => {
+    const tr = el('tr');
+    const c1 = el('td');
+    c1.append(el('div', 'fname mono', baseName(x.file)));
+    c1.append(el('div', 'floc', x.loc || ''));
+    const c2 = el('td', null, x.rule);
+    const c3 = el('td');
+    c3.append(el('span', null, x.before || '（空）'));
+    c3.append(document.createTextNode(' → '));
+    c3.append(el('b', null, x.after === '' ? '（删除）' : (x.after || '（空）')));
+    if (x.count > 1) c3.append(el('span', 'hint', ' ×' + x.count));
+    const c4 = el('td');
+    c4.append(ctxCell(x.ctx));
     tr.append(c1, c2, c3, c4);
     tb.append(tr);
   });
-  t.append(tb);
+  t.append(thead, tb);
   wrap.append(t);
+  if (r.rows.length > 400) wrap.append(el('div', 'hint', '只显示前 400 行，完整明细看导出的 HTML 报告。'));
 }
 
-/* ── 待执行队列 ───────────────────────── */
-function activeRules(rules) {
-  return (rules || []).filter(r => r.enabled !== false);
-}
-
-function renderQueue() {
-  const box = $('#queueList');
-  box.innerHTML = '';
-  if (!queue.length) {
-    const d = document.createElement('div');
-    d.className = 'hint';
-    d.style.padding = '2px 2px 6px';
-    d.textContent = '队列是空的：空跑/执行会用当前规则库。想跑多套就「+ 加入队列」。';
-    box.append(d);
-  }
-  queue.forEach((q, i) => {
-    const d = document.createElement('div');
-    d.className = 'qitem';
-    const n = document.createElement('span');
-    n.className = 'n';
-    n.textContent = (i + 1) + '. ' + q.name;
-    n.title = q.name;
-    const m = document.createElement('span');
-    m.className = 'm';
-    m.textContent = activeRules(q.rules).length + '/' + (q.rules || []).length;
-    const up = document.createElement('span');
-    up.className = 'mv'; up.textContent = '↑'; up.title = '上移';
-    up.onclick = () => { if (i > 0) { const t = queue[i - 1]; queue[i - 1] = queue[i]; queue[i] = t; renderQueue(); } };
-    const down = document.createElement('span');
-    down.className = 'mv'; down.textContent = '↓'; down.title = '下移';
-    down.onclick = () => { if (i < queue.length - 1) { const t = queue[i + 1]; queue[i + 1] = queue[i]; queue[i] = t; renderQueue(); } };
-    const x = document.createElement('span');
-    x.className = 'x'; x.textContent = '×'; x.title = '移出队列';
-    x.onclick = () => { queue.splice(i, 1); renderQueue(); };
-    d.append(n, m, up, down, x);
-    box.append(d);
-  });
-  $('#queueHint').textContent = queue.length ? queue.length + ' 套' : '空';
-}
-
-$('#enqueueBtn').onclick = () => {
-  if (!state.rules.length) { banner('err', '规则库是空的，先从案例载入一套'); return; }
-  const base = loadedPreset || ('策略' + (queue.length + 1));
-  queue.push({name: queue.length ? base + ' #' + (queue.length + 1) : base, rules: JSON.parse(JSON.stringify(state.rules))});
-  renderQueue();
-  banner('ok', '已加入队列：' + activeRules(state.rules).length + ' 条启用规则');
+$('#runBtn').onclick = () => runFlow(true);
+$('#execBtn').onclick = () => openConfirm();
+$('#reportBtn').onclick = () => runFlow(true, true);
+$('#showReportBtn').onclick = () => showPane('report');
+$('#clearBtn').onclick = () => {
+  lastRun = null;
+  $('#showReportBtn').disabled = true;
+  renderEmptyReport();
+  renderTask();
 };
-$('#clearQueueBtn').onclick = () => { queue = []; renderQueue(); };
+$('#clearQueueBtn').onclick = () => {
+  if (!queue.length) return;
+  queue = [];
+  renderQueue();
+};
 
-/* ── 执行确认：只列启用的规则 ──────────── */
+/* ── 执行确认 ─────────────────────────── */
 function openConfirm() {
   const target = $('#target').value.trim();
-  if (!target) { banner('err', '先选目标路径（「浏览…」）'); return; }
+  if (!target) { banner('err', '先选目标目录或文件'); return; }
+  if (!previewFresh()) { banner('warn', '先空跑一次：目标或规则改过之后，要重新确认命中面才能执行。'); return; }
   const steps = stepsForRun();
   if (!steps.some(st => activeRules(st.rules).length)) { banner('err', '没有启用的规则，先启用几条'); return; }
 
   $('#cfTarget').textContent = target;
+
+  const hitFiles = lastRun
+    ? (lastRun.hitFiles !== undefined && lastRun.hitFiles !== null
+        ? lastRun.hitFiles
+        : new Set((lastRun.rows || []).map(x => x.file)).size)
+    : 0;
+  $('#cfScope').textContent = lastRun
+    ? (hitFiles > 0
+        ? hitFiles + ' 个文件（共扫描 ' + lastRun.files + ' 个）'
+        : '0 个文件（扫描 ' + lastRun.files + ' 个，一处也没命中）')
+    : '没有预演结果';
+  $('#cfPreview').textContent = lastRun
+    ? '命中 ' + lastRun.hits + ' 处 · 耗时 ' + lastRun.elapsedMs + ' ms · ' + fmtTime(new Date(lastRun.at || Date.now()))
+    : '—';
+
   const bmap = {zip: '整体打包（上层目录 .bak.zip）', file: '按文件（同目录 .bak）', none: '不备份（无法回滚）'};
   $('#cfBackup').textContent = bmap[opts.backup] || opts.backup;
   $('#cfReport').textContent = opts.report || '（不导出）';
@@ -729,37 +1260,24 @@ function openConfirm() {
   const box = $('#cfRules');
   box.innerHTML = '';
   steps.forEach((st, i) => {
-    const b = document.createElement('div');
-    b.className = 'sblock';
-    const h = document.createElement('div');
-    h.className = 'h';
-    h.textContent = (i + 1) + '. ' + st.name;
-    b.append(h);
-    const on = activeRules(st.rules);
-    const off = (st.rules || []).filter(r => r.enabled === false);
-    on.forEach(r => {
-      const d = document.createElement('div');
-      d.className = 'r';
-      d.textContent = '· ' + (r.desc || r.id || '(未命名)') + '（' + (r.type || 'regex') + '）';
-      b.append(d);
-    });
-    off.forEach(r => {
-      const d = document.createElement('div');
-      d.className = 'r off';
-      d.textContent = '× ' + (r.desc || r.id || '(未命名)') + '（停用，不跑）';
-      b.append(d);
-    });
-    if (!on.length) {
-      const d = document.createElement('div');
-      d.className = 'r off';
-      d.textContent = '（这一套没有启用的规则，会被跳过）';
-      b.append(d);
-    }
+    const b = el('div', 'sblock');
+    b.append(el('div', 'h', (i + 1) + '. ' + st.name));
+    activeRules(st.rules).forEach(r => b.append(el('div', 'r', '· ' + ruleName(r) + '（' + (r.type || 'regex') + '）')));
+    (st.rules || []).filter(r => r.enabled === false).forEach(r => b.append(el('div', 'r off', '× ' + ruleName(r) + '（停用，不跑）')));
+    if (!activeRules(st.rules).length) b.append(el('div', 'r off', '（这一套没有启用的规则，会被跳过）'));
     box.append(b);
   });
+
+  // 空跑 0 命中还来点执行，先提醒一句：这一趟不会改动任何文件
+  const warn = $('#cfWarn');
+  if (lastRun && lastRun.dry && lastRun.hits === 0) {
+    warn.style.display = 'block';
+    warn.textContent = '注意：最近一次空跑命中 0 处，执行不会改动任何文件。';
+  } else {
+    warn.style.display = 'none';
+  }
   $('#confirmBox').classList.add('on');
 }
-$('#execBtn').onclick = openConfirm;
 $('#cfCancel').onclick = () => $('#confirmBox').classList.remove('on');
 $('#confirmBox').onclick = e => { if (e.target.id === 'confirmBox') $('#confirmBox').classList.remove('on'); };
 $('#cfOk').onclick = async () => {
@@ -767,7 +1285,7 @@ $('#cfOk').onclick = async () => {
   await runFlow(false);
 };
 
-/* ── 规则库另存为 ─────────────────────── */
+/* ── 规则库保存 / 另存为 ──────────────── */
 function splitPath(p) {
   const i = Math.max(p.lastIndexOf('/'), p.lastIndexOf('\\'));
   return i < 0 ? ['', p] : [p.slice(0, i), p.slice(i + 1)];
@@ -803,8 +1321,7 @@ $('#saOk').onclick = async () => {
     if (!res.ok) { $('#saMsg').textContent = res.error || '保存失败'; return; }
     state.rulesPath = res.path;
     state.rulesMtime = res.mtime || 0;
-    $('#rulePath').textContent = splitPath(state.rulesPath)[1];
-    $('#optRulesPath').textContent = state.rulesPath;
+    markClean();
     $('#saveAsBox').classList.remove('on');
     banner('ok', '已另存为 ' + state.rulesPath);
   } catch (e) {
@@ -813,11 +1330,13 @@ $('#saOk').onclick = async () => {
 };
 
 async function saveRules() {
+  if (!state.rules.length) { banner('err', '规则库是空的，先从模板载入一套'); return; }
   try {
     const res = await api('/api/rules', {rules: state.rules, baseMtime: state.rulesMtime});
     if (res.ok) {
       state.rulesMtime = res.mtime;
-      banner('ok', '已保存到 ' + state.rulesPath + (res.backup ? '（旧文件备份为 ' + res.backup.split(/[\\/]/).pop() + '）' : ''));
+      markClean();
+      banner('ok', '已保存到 ' + state.rulesPath + (res.backup ? '（旧文件备份为 ' + baseName(res.backup) + '）' : ''));
     } else if (res.conflict) {
       banner('warn', res.error, {label: '重新加载', fn: () => location.reload()});
     } else {
@@ -827,108 +1346,65 @@ async function saveRules() {
     banner('err', '保存失败：' + e.message);
   }
 }
+$('#saveBtn').onclick = saveRules;
+$('#quitBtn').onclick = async () => {
+  try { await api('/api/quit', {}); } catch (e) {}
+  document.body.innerHTML = '<p style="padding:24px;font:14px system-ui">已退出，可以关掉这个标签页。</p>';
+};
 
+/* ── 模板 ─────────────────────────────── */
+function applyPreset(p) {
+  state.rules = JSON.parse(JSON.stringify(p.rules || []));
+  loadedPreset = p.name;
+  sel = 0;
+  probe = null;
+  markDirty();
+  renderAll();
+  // 模板把空库填上之后，「规则库还是空的」这条提示要撤掉
+  const b = $('#banner');
+  if (b.classList.contains('warn') && b.textContent.indexOf('规则库还是空的') === 0) banner('', '');
+}
+
+function loadPreset(p) {
+  if (state.rules.length && !confirm('用模板「' + p.name + '」的 ' + (p.rules || []).length + ' 条规则替换当前规则库？\n（想留底就先点右上角「保存规则库」）')) return;
+  applyPreset(p);
+  banner('warn', '已载入模板「' + p.name + '」（' + (p.rules || []).length + ' 条 · ' + p.risk + '风险）。' + (p.note || ''));
+}
+
+$('#addBtn').onclick = () => {
+  state.rules.push({id: 'rule' + (state.rules.length + 1), desc: '新规则', type: 'regex', pattern: '', replace: '{stars}', enabled: true});
+  sel = state.rules.length - 1;
+  loadedPreset = '';
+  probe = null;
+  markDirty();
+  renderAll();
+};
+
+/* ── 启动 ─────────────────────────────── */
 async function boot() {
   try {
     const res = await api('/api/state');
     if (!res.ok) { banner('err', res.error || '读取状态失败'); return; }
     const s = res.state;
     state = {rules: s.rules || [], presets: s.presets || [], rulesPath: s.rulesPath, rulesMtime: s.rulesMtime, version: s.version};
-    $('#rulePath').textContent = (s.rulesPath || 'rules.json').split(/[\\/]/).pop();
-    $('#optRulesPath').textContent = s.rulesPath || '';
     sel = 0;
     renderAll();
+    renderCases();
     renderOpts();
+    updateTargetHint();
+    renderEmptyReport();
     if (!state.rules.length) {
-      showTab('cases');
-      banner('warn', '规则库还是空的：左边点一个案例就有规则，改完点「保存规则库」。');
+      banner('warn', '规则库还是空的：左栏「模板」点一个就有规则，改完点右上角「保存规则库」。');
     }
   } catch (e) {
     banner('err', '连不上本地服务：' + e.message);
   }
 }
 
-$('#tabRules').onclick = () => showTab('rules');
-$('#tabCases').onclick = () => showTab('cases');
-$('#addBtn').onclick = () => {
-  state.rules.push({id: 'rule' + (state.rules.length + 1), desc: '新规则', type: 'regex', pattern: '', replace: '{stars}', enabled: true});
-  sel = state.rules.length - 1;
-  showTab('rules');
-  renderAll();
-};
-$('#runBtn').onclick = () => runFlow(true);
-$('#clearBtn').onclick = () => { $('#rowsWrap').style.display = 'none'; $('#rowsWrap').innerHTML = ''; $('#summary').innerHTML = ''; $('#prevHint').textContent = ''; };
-$('#saveBtn').onclick = saveRules;
-renderQueue();
-$('#quitBtn').onclick = async () => {
-  try { await api('/api/quit', {}); } catch (e) {}
-  document.body.innerHTML = '<p style="padding:24px;font:14px system-ui">已退出，可以关掉这个标签页。</p>';
-};
-
 setInterval(() => api('/api/ping', {}).catch(() => {}), 4000);
 
-// 自检模式：?selftest=1&target=... 走真实代码路径（载入案例 → 空跑 → 渲染），
-// 把结果写成一段 JSON 放在 #selftest-report 里，给 scripts/ui-check.sh 断言用。
-async function selftest(target) {
-  const rep = {ok: true, presets: state.presets.length, rulesAtBoot: state.rules.length};
-  try {
-    const p = state.presets.find(x => x.id === 'network') || state.presets[0];
-    state.rules = JSON.parse(JSON.stringify(p.rules || []));
-    sel = 0;
-    showTab('rules');
-    renderAll();
-    rep.preset = p.id;
-    rep.rulesAfterLoad = state.rules.length;
-    rep.editorTitle = document.querySelector('#editTitle').textContent;
-    rep.listRendered = document.querySelectorAll('#listRules .ritem').length;
-    document.querySelector('#target').value = target;
-    await runFlow(true);
-    const sum = document.querySelector('#summary').textContent.trim();
-    rep.summary = sum;
-    rep.hits = parseInt((sum.match(/(\d+)\s*处/) || [0, '0'])[1], 10);
-    rep.files = parseInt((sum.match(/(\d+)\s*个文件/) || [0, '0'])[1], 10);
-    rep.rows = document.querySelectorAll('#rowsWrap tbody tr').length;
-    rep.marked = document.querySelectorAll('#rowsWrap mark').length;
-    rep.banner = document.querySelector('#banner').className;
-
-    // 队列：把当前规则库加进去，再空跑一次
-    const mode = new URLSearchParams(location.search).get('selftest');
-    if (mode === 'confirmoff' && state.rules.length) {
-      state.rules[0].enabled = false; // 留一条停用的，验证确认弹窗怎么显示
-      renderAll();
-    }
-    document.querySelector('#enqueueBtn').click();
-    rep.queueLen = queue.length;
-    const res2 = await runFlow(true);
-    rep.queueHits = res2 ? res2.hits : -1;
-
-    // 确认弹窗：只列启用规则，停用的单独标注
-    openConfirm();
-    rep.confirmShown = document.querySelector('#confirmBox').classList.contains('on');
-    rep.confirmBlocks = document.querySelectorAll('#cfRules .sblock').length;
-    rep.confirmActive = document.querySelectorAll('#cfRules .r:not(.off)').length;
-    rep.confirmOff = document.querySelectorAll('#cfRules .off').length;
-    // 只想看确认弹窗时停在这里（截图用）
-    if (mode === 'confirm' || mode === 'confirmoff') {
-      const pre0 = document.createElement('pre');
-      pre0.id = 'selftest-report';
-      pre0.style.display = 'none';
-      pre0.textContent = JSON.stringify(rep);
-      document.body.append(pre0);
-      return;
-    }
-    document.querySelector('#cfCancel').click();
-
-
-    // 真执行（样例目录是临时拷贝，改了也无所谓）
-    const res3 = await runFlow(false);
-    rep.executed = res3 ? res3.written : -1;
-    rep.execHits = res3 ? res3.hits : -1;
-    rep.execFailed = res3 ? res3.failed : -1;
-  } catch (e) {
-    rep.ok = false;
-    rep.error = String(e);
-  }
+/* ── 自检（scripts/ui-check.sh 用）──────── */
+function dumpReport(rep) {
   const pre = document.createElement('pre');
   pre.id = 'selftest-report';
   pre.style.display = 'none';
@@ -936,9 +1412,150 @@ async function selftest(target) {
   document.body.append(pre);
 }
 
+async function selftest(target) {
+  const rep = {ok: true, presets: state.presets.length, rulesAtBoot: state.rules.length};
+  const mode = new URLSearchParams(location.search).get('selftest');
+  try {
+    // 1) 载入模板 → 左栏渲染
+    const p = state.presets.find(x => x.id === 'network') || state.presets[0];
+    applyPreset(p);
+    rep.preset = p.id;
+    rep.rulesAfterLoad = state.rules.length;
+    rep.editorTitle = $('#editTitle').textContent;
+    rep.listRendered = document.querySelectorAll('#listRules .ritem').length;
+    rep.casesRendered = document.querySelectorAll('#listCases .case').length;
+
+    // 2) 目标 + 单条试跑
+    setTarget(target);
+    rep.targetValue = $('#target').value;
+    await probeRule();
+    await checkRule(state.rules[sel]); // 直接等结果，别让 450ms 防抖影响断言
+    rep.probeHits = probe ? probe.hits : -1;
+    rep.probeRows = document.querySelectorAll('#probeBox tbody tr').length;
+    rep.checkLine = ($('#checkLine') || {}).textContent || '';
+
+    // 3) 按钮配色、步骤条与布局（此时停在「规则配置」）
+    const bg = id => getComputedStyle(document.querySelector(id)).backgroundColor;
+    rep.colors = {dry: bg('#runBtn'), exec: bg('#execBtn'), clear: bg('#clearBtn')};
+    const rect = id => document.querySelector(id).getBoundingClientRect();
+    const re = rect('#editorPanel'), rp = rect('#taskPanel'), ra = rect('#actionBar');
+    rep.layout = {
+      editorWidth: Math.round(re.width), rightWidth: Math.round(rp.width),
+      actionBarBottom: Math.round(ra.bottom), viewportH: innerHeight,
+      pageOverflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    };
+    rep.steps = document.querySelectorAll('#stepBar .step').length;
+    rep.stepActive = activeStep;
+    rep.stepLabels = [1, 2, 3, 4].map(n => $('#step' + n + 'v').textContent);
+    rep.cfgStepOn = $('#step2').classList.contains('on');
+    rep.execDisabledBefore = $('#execBtn').disabled;
+    rep.cfgPaneVisible = getComputedStyle($('#paneCfg')).display !== 'none';
+
+    // 4) 要看「停用的规则」时先停一条再入队
+    if (mode === 'confirmoff' && state.rules.length) {
+      state.rules[0].enabled = false;
+      renderAll();
+    }
+    enqueue();
+    rep.queueLen = queue.length;
+    rep.queueCards = document.querySelectorAll('#queueList .q:not(.total)').length;
+
+    // 4) 队列徽标：改一下规则库，应变成「规则库已改」
+    const snapshot = JSON.stringify(state.rules[0]);
+    state.rules[0].note = 'selftest';
+    renderQueue();
+    rep.queueWarnBadge = document.querySelectorAll('#queueList .q .badge.warn').length;
+    state.rules[0] = JSON.parse(snapshot);
+    renderQueue();
+    // 只想看「规则配置」页时停在这里（截图用）
+    if (mode === 'cfg') {
+      dumpReport(rep);
+      return;
+    }
+
+    // 5) 空跑（走真实接口）→ 自动切到「运行报告」
+    const res = await runFlow(true);
+    rep.hits = res ? res.hits : -1;
+    rep.files = res ? res.files : -1;
+    rep.rows = res ? (res.rows || []).length : -1;
+    rep.marked = document.querySelectorAll('#rowsWrap mark').length;
+    rep.queueEst = (queue.length && queue[0].est) ? queue[0].est.hits : -1;
+    rep.summary = $('#summary').textContent.trim();
+
+    // 6) 标签页：跑完应在「运行报告」，且能切回规则配置
+    rep.reportStepOn = $('#step3').classList.contains('on') || $('#step4').classList.contains('on');
+    rep.reportPaneVisible = getComputedStyle($('#paneReport')).display !== 'none';
+    rep.reportRows = document.querySelectorAll('#rowsWrap tbody tr').length;
+    rep.step3Label = $('#step3v').textContent;
+    rep.reportMeta = $('#reportMeta').textContent;
+    rep.showReportEnabled = !$('#showReportBtn').disabled;
+    rep.execEnabledAfter = !$('#execBtn').disabled;
+    rep.taskState = $('#taskState').textContent;
+    showPane('cfg');
+    rep.cfgBackVisible = getComputedStyle($('#paneCfg')).display !== 'none';
+    showPane('report');
+    // 只想看「空跑后」的界面时停在这里（截图用，不写盘）
+    if (mode === 'dry') {
+      dumpReport(rep);
+      return;
+    }
+
+    // 7) 执行确认弹窗：只列启用规则，停用的单独标注
+    openConfirm();
+    rep.confirmShown = $('#confirmBox').classList.contains('on');
+    rep.confirmBlocks = document.querySelectorAll('#cfRules .sblock').length;
+    rep.confirmActive = document.querySelectorAll('#cfRules .r:not(.off)').length;
+    rep.confirmOff = document.querySelectorAll('#cfRules .off').length;
+    rep.cfScope = $('#cfScope').textContent;
+    rep.cfPreview = $('#cfPreview').textContent;
+    if (mode === 'confirm' || mode === 'confirmoff') {
+      dumpReport(rep);
+      return;
+    }
+    $('#cfCancel').click();
+
+    // 9) 真执行（样例目录是临时拷贝）
+    const r3 = await runFlow(false);
+    rep.executed = r3 ? r3.written : -1;
+    rep.execHits = r3 ? r3.hits : -1;
+    rep.execFailed = r3 ? r3.failed : -1;
+    rep.banner = $('#banner').className;
+
+    // 10) 删除图片规则：编辑器只给说明，不再显示 pattern / replace
+    if (state.rules.length) {
+      state.rules[0].type = 'strip_images';
+      state.rules[0].pattern = '';
+      state.rules[0].replace = '';
+      renderAll();
+      await checkRule(state.rules[0]);
+      rep.stripRuleOption = Array.from(document.querySelectorAll('#editor select option'))
+        .some(o => o.value === 'strip_images');
+      rep.stripRuleInputs = document.querySelectorAll('#editor input').length;
+      rep.stripRuleEditor = ($('#checkLine') || {}).textContent || '';
+    }
+  } catch (e) {
+    rep.ok = false;
+    rep.error = String(e);
+  }
+  dumpReport(rep);
+}
+
 const qp = new URLSearchParams(location.search);
 boot().then(() => {
-  if (qp.get('selftest')) selftest(qp.get('target') || '');
+  if (!qp.get('selftest')) return;
+  if (qp.get('selftest') === 'strip') stripShot(qp.get('target') || '');
+  else selftest(qp.get('target') || '');
 });
+
+// strip 模式：只把「文档去图」模板载入并停在规则配置页，给截图与人工核对用
+async function stripShot(target) {
+  const p = state.presets.find(x => x.id === 'images');
+  if (p) applyPreset(p);
+  setTarget(target);
+  sel = 0;
+  renderAll();
+  await checkRule(state.rules[0]);
+  dumpReport({ok: true, stripShot: true, checkLine: ($('#checkLine') || {}).textContent || ''});
+}
 </script>
 </body></html>

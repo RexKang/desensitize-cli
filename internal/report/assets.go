@@ -1,6 +1,6 @@
 package report
 
-// reportCSS 与 Python 版视觉一致：左栏总览 + 目录，右栏分段明细。
+// reportCSS：左栏总览 + 目录，右栏分段明细。
 const reportCSS = `
 body{margin:0;font:13.5px/1.6 system-ui,"Microsoft YaHei",sans-serif;color:#1f2328;background:#fff;
      display:grid;grid-template-columns:322px minmax(0,1fr);overflow:hidden}

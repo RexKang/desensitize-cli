@@ -60,6 +60,42 @@ func TestPresetsLoad(t *testing.T) {
 	}
 }
 
+// hasTextRule 判断案例里有没有扫文本的规则；只有 strip_images 的案例改不了示例文本。
+func hasTextRule(p *Preset) bool {
+	for _, r := range p.Rules {
+		if !r.IsStripImages() {
+			return true
+		}
+	}
+	return false
+}
+
+// 「文档去图」的承诺是只删图：模板里只能有一条 strip_images，不许夹带文本规则。
+func TestImagesPresetStripsOnlyImages(t *testing.T) {
+	list, err := All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var img *Preset
+	for _, p := range list {
+		if p.ID == "images" {
+			img = p
+		}
+	}
+	if img == nil {
+		t.Fatal("案例库里没有 images")
+	}
+	if len(img.Rules) != 1 {
+		t.Fatalf("「文档去图」应只含 1 条规则，实际 %d 条", len(img.Rules))
+	}
+	if !img.Rules[0].IsStripImages() {
+		t.Fatalf("「文档去图」唯一的规则应是 strip_images，实际 %q", img.Rules[0].Type)
+	}
+	if !img.Rules[0].IsEnabled() {
+		t.Error("「文档去图」的规则应默认启用")
+	}
+}
+
 // 每个案例的示例文本都必须真的被这套规则改掉，否则案例是死的。
 func TestEveryPresetChangesItsSample(t *testing.T) {
 	list, err := All()
@@ -67,6 +103,9 @@ func TestEveryPresetChangesItsSample(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, p := range list {
+		if !hasTextRule(p) {
+			continue // 纯结构型案例（如「文档去图」）没有文本命中，由各自的专项测试覆盖
+		}
 		allOff := true
 		for _, r := range p.Rules {
 			if r.IsEnabled() {

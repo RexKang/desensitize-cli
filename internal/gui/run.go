@@ -73,11 +73,13 @@ type stepResult struct {
 	Rules  int    `json:"rules"`
 	Active int    `json:"active"`
 	Hits   int    `json:"hits"`
+	Files  int    `json:"files"`
 }
 
 type runResp struct {
 	Dry       bool         `json:"dry"`
 	Files     int          `json:"files"`
+	HitFiles  int          `json:"hitFiles"` // 有命中的文件数（和 rows 里的文件去重一致）
 	Hits      int          `json:"hits"`
 	Written   int          `json:"written"`
 	Failed    int          `json:"failed"`
@@ -148,7 +150,7 @@ func (s *Server) run(req runReq, passes []files.Pass, mode string) (runResp, err
 		limit = 200
 	}
 
-	resp := runResp{Dry: req.Dry, Problems: problems}
+	resp := runResp{Dry: req.Dry, Problems: problems, Steps: []stepResult{}, Rows: []previewRow{}}
 	for _, ps := range passes {
 		active := 0
 		for _, r := range ps.Rules {
@@ -204,17 +206,30 @@ func (s *Server) run(req runReq, passes []files.Pass, mode string) (runResp, err
 		})
 		resp.Hits += d.Count
 	}
-	// 每条策略各自命中多少
-	if len(passes) > 1 {
-		byStage := map[string]int{}
-		for _, d := range stats.Order {
-			byStage[d.Stage] += d.Count
+	// 每条策略各自命中多少处、涉及多少文件
+	hitFiles := map[string]struct{}{}
+	byStageHits := map[string]int{}
+	byStageFiles := map[string]map[string]struct{}{}
+	for _, d := range stats.Order {
+		hitFiles[d.File] = struct{}{}
+		if d.Stage == "" {
+			continue
 		}
+		byStageHits[d.Stage] += d.Count
+		if byStageFiles[d.Stage] == nil {
+			byStageFiles[d.Stage] = map[string]struct{}{}
+		}
+		byStageFiles[d.Stage][d.File] = struct{}{}
+	}
+	resp.HitFiles = len(hitFiles)
+	if len(passes) > 1 {
 		for i := range resp.Steps {
-			resp.Steps[i].Hits = byStage[resp.Steps[i].Name]
+			resp.Steps[i].Hits = byStageHits[resp.Steps[i].Name]
+			resp.Steps[i].Files = len(byStageFiles[resp.Steps[i].Name])
 		}
 	} else if len(resp.Steps) == 1 {
 		resp.Steps[0].Hits = resp.Hits
+		resp.Steps[0].Files = len(hitFiles)
 	}
 
 	if !req.Dry && len(pending) > 0 {
@@ -255,7 +270,8 @@ func (s *Server) run(req runReq, passes []files.Pass, mode string) (runResp, err
 			resp.Problems = append(resp.Problems, "报告导出失败: "+err.Error())
 		} else {
 			resp.Report = reportPath
-			if req.Open && !req.Dry {
+			// 空跑也可以打开报告：命令行版在 --dry-run 时同样会开
+			if req.Open {
 				_ = browser.OpenFile(reportPath)
 			}
 		}

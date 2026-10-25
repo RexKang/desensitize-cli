@@ -60,6 +60,12 @@ func TestRunTwoStepsInOrder(t *testing.T) {
 	if resp.Result.Steps[0].Hits != 1 || resp.Result.Steps[1].Hits != 1 {
 		t.Errorf("每步应各 1 处, got %+v", resp.Result.Steps)
 	}
+	if resp.Result.Steps[0].Files != 1 || resp.Result.Steps[1].Files != 1 {
+		t.Errorf("每步应各涉及 1 个文件, got %+v", resp.Result.Steps)
+	}
+	if resp.Result.HitFiles != 1 {
+		t.Errorf("有命中的文件数 = %d, 期望 1", resp.Result.HitFiles)
+	}
 	// 空跑不许动文件
 	if got, _ := os.ReadFile(file); strings.Contains(string(got), "****") {
 		t.Fatal("空跑把文件改了")

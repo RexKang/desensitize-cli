@@ -95,6 +95,46 @@ func (s *Stats) Add(file string, h mask.Hit, text string, loc LocatorFunc) {
 	s.Order = append(s.Order, d)
 }
 
+// AddMedia 记录一次「删除图片」这类结构型改动：不是文本替换，但同样要计入
+// 命中、文件数与明细，否则用户看不出文件为什么被改了。
+func (s *Stats) AddMedia(file, ruleID, label, loc string, names []string, n int) {
+	if n <= 0 {
+		return
+	}
+	s.RuleHits[ruleID] += n
+	if s.ruleFileSet[ruleID] == nil {
+		s.ruleFileSet[ruleID] = map[string]bool{}
+	}
+	if !s.ruleFileSet[ruleID][file] {
+		s.ruleFileSet[ruleID][file] = true
+		s.RuleFiles[ruleID]++
+	}
+	if len(s.Order) >= s.detailCap {
+		return
+	}
+	before := strings.Join(names, "、")
+	if len(before) > 160 {
+		before = before[:159] + "…"
+	}
+	if before == "" {
+		before = "（外部链接图片）"
+	}
+	shown := label
+	if s.stage != "" {
+		shown = s.stage + " / " + label
+	}
+	s.Order = append(s.Order, &Detail{
+		File:   file,
+		RuleID: ruleID,
+		Stage:  s.stage,
+		Label:  shown,
+		Loc:    loc,
+		Before: before,
+		After:  "（已删除）",
+		Count:  n,
+	})
+}
+
 // Context 取命中两侧若干 rune，命中片段用 ⟦⟧ 标出。
 func Context(text string, start, end, radius int) string {
 	pre := ""

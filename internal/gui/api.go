@@ -89,6 +89,7 @@ type previewRow struct {
 
 type previewResp struct {
 	Files     int          `json:"files"`
+	HitFiles  int          `json:"hitFiles"`
 	Hits      int          `json:"hits"`
 	Rows      []previewRow `json:"rows"`
 	Problems  []string     `json:"problems"`
@@ -132,7 +133,7 @@ func (s *Server) preview(req previewReq) (previewResp, error) {
 		limit = 200
 	}
 
-	resp := previewResp{Problems: problems}
+	resp := previewResp{Problems: problems, Rows: []previewRow{}}
 	stats := files.NewStats()
 	for i, f := range found {
 		if i >= limit {
@@ -161,8 +162,18 @@ func (s *Server) preview(req previewReq) (previewResp, error) {
 		})
 		resp.Hits += d.Count
 	}
+	resp.HitFiles = len(uniqueFiles(stats))
 	resp.ElapsedMS = time.Since(start).Milliseconds()
 	return resp, nil
+}
+
+// uniqueFiles 数有命中的文件（stats.Order 已按文件+规则+位置去重）。
+func uniqueFiles(s *files.Stats) map[string]struct{} {
+	out := map[string]struct{}{}
+	for _, d := range s.Order {
+		out[d.File] = struct{}{}
+	}
+	return out
 }
 
 // ────────────────────────────── 保存规则 ──────────────────────────────

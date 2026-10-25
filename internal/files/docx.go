@@ -52,13 +52,28 @@ func partLabel(name string) string {
 	return base
 }
 
+// docxTextPartOfRels 把 "word/_rels/header1.xml.rels" 映射回它描述的文字部件。
+// 只认承载文字的部件：图表、嵌入对象（OLE）的 rels 不在 word/_rels/ 下，
+// 它们指向的图片也不能删——删了会在 chart XML 里留下指向不存在关系的 r:embed。
+func docxTextPartOfRels(relsPath string) (string, bool) {
+	if !strings.HasPrefix(relsPath, "word/_rels/") || !strings.HasSuffix(relsPath, ".rels") {
+		return "", false
+	}
+	part := "word/" + strings.TrimSuffix(strings.TrimPrefix(relsPath, "word/_rels/"), ".rels")
+	if !isDocxTextPart(part) {
+		return "", false
+	}
+	return part, true
+}
+
 // ProcessDocx 就地处理 .docx（单组规则）。
 func ProcessDocx(path string, rs []*rules.Rule, stats *Stats, dry bool) (*Pending, error) {
 	return ProcessDocxPasses(path, SinglePass(rs), stats, dry)
 }
 
 // ProcessDocxPasses 就地处理 .docx：只改 word/ 下承载文字的 XML 部件，
-// 其余 zip 条目按原顺序、原压缩方式搬过去，样式和图片不受影响。
+// 其余 zip 条目按原顺序、原压缩方式搬过去，样式不受影响。
+// 有启用的 strip_images 规则时，正文 / 页眉页脚 / 脚注尾注批注里的图片一并删掉。
 // dry 为真时只算不落盘（界面预演用）。
 func ProcessDocxPasses(path string, passes []Pass, stats *Stats, dry bool) (*Pending, error) {
 	zr, err := zip.OpenReader(path)
@@ -67,15 +82,52 @@ func ProcessDocxPasses(path string, passes []Pass, stats *Stats, dry bool) (*Pen
 	}
 	defer zr.Close()
 
+	strip := activeStripRule(passes)
+	stripStage := ""
+	if strip != nil {
+		stripStage = stageOfRule(passes, strip)
+	}
+
 	replaced := map[string][]byte{}
-	var notes []string
-	total := 0
-	hasMedia, hasTracked, hasMacro := false, false, false
+	drop := map[string]bool{}
+	partMedia := map[string][]string{} // 每个部件引用到的图片文件名
+
+	// 先收图片关系：只碰承载文字的部件，把关系项删掉并记下这些媒体
+	if strip != nil {
+		for _, f := range zr.File {
+			part, ok := docxTextPartOfRels(f.Name)
+			if !ok {
+				continue
+			}
+			raw, err := readEntry(f)
+			if err != nil {
+				return nil, err
+			}
+			out, targets := dropImageRelationships(f.Name, raw)
+			if len(targets) == 0 {
+				continue
+			}
+			replaced[f.Name] = out
+			for _, t := range targets {
+				if !isImagePart(t) || drop[t] {
+					continue
+				}
+				drop[t] = true
+				partMedia[part] = append(partMedia[part], mediaBase(t))
+			}
+		}
+	}
+
+	var notes, imgParts []string
+	total, images := 0, 0
+	hasMedia, hasChart, hasTracked, hasMacro := false, false, false, false
 
 	for _, f := range zr.File {
 		switch {
 		case strings.HasPrefix(f.Name, "word/media/"):
 			hasMedia = true
+		case strings.HasPrefix(f.Name, "word/charts/"):
+			hasChart = true
 		case strings.HasSuffix(f.Name, "vbaProject.bin"):
 			hasMacro = true
 		}
@@ -90,17 +142,37 @@ func ProcessDocxPasses(path string, passes []Pass, stats *Stats, dry bool) (*Pen
 			hasTracked = true
 		}
 		out, hits := rewriteDocxPart(raw, f.Name, passes, stats, path)
-		if hits > 0 {
+		removed := 0
+		if strip != nil {
+			out, removed = stripDocxImages(out)
+			if removed > 0 {
+				stats.SetStage(stripStage)
+				stats.AddMedia(path, strip.ID, strip.Label(), partLabel(f.Name), partMedia[f.Name], removed)
+				images += removed
+				imgParts = append(imgParts, partLabel(f.Name)+" "+itoa(removed))
+			}
+		}
+		total += hits
+		if hits > 0 || removed > 0 {
 			replaced[f.Name] = out
-			total += hits
 		}
 	}
-	if total == 0 {
+	if strip != nil {
+		// 关系删完后，word/media 里没人引用的图片（页眉 logo、历史孤立文件）一并丢掉
+		dropUnreferencedImages(&zr.Reader, replaced, drop, "word/media/")
+	}
+	if total == 0 && images == 0 {
 		return nil, nil
 	}
 
-	if hasMedia {
+	if images > 0 {
+		notes = append(notes, "删除图片 "+itoa(images)+" 张（"+strings.Join(imgParts, "、")+"）")
+	}
+	if hasMedia && strip == nil {
 		notes = append(notes, "图片/图表里的文字是像素，不会被处理")
+	}
+	if hasChart {
+		notes = append(notes, "图表里的文字仍是像素，不会被处理")
 	}
 	if hasTracked {
 		notes = append(notes, "修订记录里被标记删除的文字不处理")
@@ -110,13 +182,13 @@ func ProcessDocxPasses(path string, passes []Pass, stats *Stats, dry bool) (*Pen
 	}
 
 	if dry {
-		return &Pending{Path: path, Hits: total, Notes: notes}, nil
+		return &Pending{Path: path, Hits: total + images, Notes: notes}, nil
 	}
-	data, err := rebuildZip(&zr.Reader, replaced)
+	data, err := rebuildZipWithDrop(&zr.Reader, replaced, func(n string) bool { return drop[n] })
 	if err != nil {
 		return nil, err
 	}
-	return &Pending{Path: path, Data: data, Hits: total, Notes: notes}, nil
+	return &Pending{Path: path, Data: data, Hits: total + images, Notes: notes}, nil
 }
 
 func readEntry(f *zip.File) ([]byte, error) {
@@ -130,9 +202,18 @@ func readEntry(f *zip.File) ([]byte, error) {
 
 // rebuildZip 按原条目顺序重打包，只替换 map 里给出的那几个部件。
 func rebuildZip(zr *zip.Reader, replaced map[string][]byte) ([]byte, error) {
+	return rebuildZipWithDrop(zr, replaced, nil)
+}
+
+// rebuildZipWithDrop 在替换的基础上支持删除条目（drop 返回 true 的条目不再写入）。
+// docx / xlsx 删图片时要同时删掉 media 文件，走这个。
+func rebuildZipWithDrop(zr *zip.Reader, replaced map[string][]byte, drop func(string) bool) ([]byte, error) {
 	var buf bytes.Buffer
 	zw := zip.NewWriter(&buf)
 	for _, f := range zr.File {
+		if drop != nil && drop(f.Name) {
+			continue
+		}
 		hdr := f.FileHeader
 		w, err := zw.CreateHeader(&hdr)
 		if err != nil {

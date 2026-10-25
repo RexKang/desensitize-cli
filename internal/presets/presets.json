@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0",
+  "version": "0.4.0",
   "_comment": "内置案例库。每个案例 = 一组规则 + 一段示例文本，点开就能看到会改成什么。规则字段与 rules.json 完全一致，可直接导出成自己的规则文件。",
   "presets": [
     {
@@ -151,6 +151,18 @@
       "sample": "工号 10000086 参数 10000000 日期 20260101",
       "rules": [
         {"id": "serial", "desc": "8位编号", "type": "digits", "length": 8, "skip_valid_date": true, "replace": "{keep:4}", "enabled": false}
+      ]
+    },
+    {
+      "id": "images",
+      "name": "文档去图",
+      "desc": "只删 docx / xlsx 里的图片（含页眉页脚），不动文字",
+      "tags": ["文档", "图片"],
+      "risk": "中",
+      "note": "只删图片、不改文字：图表、SmartArt、文本框、嵌入对象都不动；还要脱敏文字就再叠加别的规则",
+      "sample": "页眉 logo.png、正文 签名.jpg、批注截图.bmp",
+      "rules": [
+        {"id": "strip_images", "desc": "删除图片", "type": "strip_images", "enabled": true}
       ]
     }
   ]

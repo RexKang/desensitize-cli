@@ -67,6 +67,8 @@ func New(opts Options) (*Server, error) {
 	mux.HandleFunc("/api/ping", s.auth(s.handlePing))
 	mux.HandleFunc("/api/quit", s.auth(s.handleQuit))
 	mux.HandleFunc("/api/ls", s.auth(s.handleLs))
+	mux.HandleFunc("/api/pick", s.auth(s.handlePick))
+	mux.HandleFunc("/api/rule-check", s.auth(s.handleRuleCheck))
 
 	s.srv = &http.Server{
 		Handler:           mux,

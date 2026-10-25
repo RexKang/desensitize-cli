@@ -5,13 +5,6 @@ dist/
 *.test
 *.out
 
-# Python（python/ 下的旧实现）
-__pycache__/
-*.py[cod]
-*.egg-info/
-.venv/
-venv/
-
 # 本地规则与产物
 rules.json
 *.bak
@@ -22,9 +15,6 @@ out/
 *.csv
 # go:embed 的页面不是产物，必须入库
 !internal/gui/page.html
-
-# 自测夹具是生成的
-python/tests/fixtures/
 
 # 编辑器 / 系统
 .vscode/

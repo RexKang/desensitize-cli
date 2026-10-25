@@ -220,11 +220,11 @@ func ProcessXLSX(path string, rs []*rules.Rule, stats *Stats, dry bool) (*Pendin
 
 // ProcessXLSXPasses 按顺序套用多条策略处理 Excel。
 func ProcessXLSXPasses(path string, passes []Pass, stats *Stats, dry bool) (*Pending, error) {
-	f, err := excelize.OpenFile(path)
+	f, cleanup, err := openXLSX(path)
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer cleanup()
 
 	var hits int
 	notes := []string{}
@@ -290,8 +290,41 @@ func ProcessXLSXPasses(path string, passes []Pass, stats *Stats, dry bool) (*Pen
 			}
 		}
 	}
-	if hits == 0 {
-		return nil, nil
+	// ── 删除图片（strip_images 规则）──
+	// 单元格图片交给 excelize；页眉页脚图片要等包写出来后再按 zip 结构收尾。
+	strip := activeStripRule(passes)
+	stripStage := ""
+	cellPics, cellCells := 0, 0
+	var cellNames []string
+	if strip != nil {
+		stripStage = stageOfRule(passes, strip)
+		for _, sheet := range f.GetSheetList() {
+			cells, err := f.GetPictureCells(sheet)
+			if err != nil {
+				notes = append(notes, "读图片位置失败 "+sheet+": "+err.Error())
+				continue
+			}
+			for _, cell := range cells {
+				pics, _ := f.GetPictures(sheet, cell)
+				n := len(pics)
+				if err := f.DeletePicture(sheet, cell); err != nil {
+					notes = append(notes, "删除图片失败 "+sheet+"!"+cell+": "+err.Error())
+					continue
+				}
+				if n == 0 {
+					n = 1
+				}
+				cellPics += n
+				cellCells++
+				cellNames = append(cellNames, sheet+"!"+cell)
+			}
+		}
+	}
+
+	if hits == 0 && cellPics == 0 {
+		if strip == nil || !hasXLSXHeaderFooterPictures(path) {
+			return nil, nil
+		}
 	}
 	if skippedFormula > 0 {
 		notes = append(notes, fmt.Sprintf("跳过公式单元格 %d 个（不改公式）", skippedFormula))
@@ -299,26 +332,102 @@ func ProcessXLSXPasses(path string, passes []Pass, stats *Stats, dry bool) (*Pen
 	if skippedDate > 0 {
 		notes = append(notes, fmt.Sprintf("跳过日期单元格 %d 个", skippedDate))
 	}
-	for _, w := range xlsxRisks(path) {
+	for _, w := range xlsxRisks(path, strip != nil) {
 		notes = append(notes, w)
 	}
-
-	if dry {
-		return &Pending{Path: path, Hits: hits, Notes: notes}, nil
+	if strip != nil && cellPics > 0 {
+		stats.SetStage(stripStage)
+		stats.AddMedia(path, strip.ID, strip.Label(), "工作表图片", cellNames, cellPics)
 	}
 
-	ext := filepath.Ext(path)
-	tmp := strings.TrimSuffix(path, ext) + ".desensitize.tmp" + ext
-	if err := f.SaveAs(tmp); err != nil {
-		return nil, err
+	// 有删除图片规则时必须把包生成出来：页眉页脚图片藏在 VML 里，只能打包后处理。
+	if strip == nil {
+		if dry {
+			return &Pending{Path: path, Hits: hits, Notes: notes}, nil
+		}
+		data, err := writeXLSX(f)
+		if err != nil {
+			return nil, err
+		}
+		return &Pending{Path: path, Data: data, Hits: hits, Notes: notes}, nil
 	}
-	data, err := os.ReadFile(tmp)
+
+	data, err := writeXLSX(f)
 	if err != nil {
 		return nil, err
 	}
-	_ = os.Remove(tmp)
+	out, hfPics, hfNames, err := stripXLSXMedia(data)
+	if err != nil {
+		return nil, err
+	}
+	if hfPics > 0 {
+		stats.SetStage(stripStage)
+		stats.AddMedia(path, strip.ID, strip.Label(), "页眉页脚", hfNames, hfPics)
+		notes = append(notes, "删除页眉页脚图片 "+itoa(hfPics)+" 张")
+	}
+	imgTotal := cellPics + hfPics
+	if imgTotal > 0 {
+		notes = append(notes, "删除图片 "+itoa(imgTotal)+" 张（工作表 "+itoa(cellCells)+" 个位置）")
+	}
+	if dry {
+		return &Pending{Path: path, Hits: hits + imgTotal, Notes: notes}, nil
+	}
+	return &Pending{Path: path, Data: out, Hits: hits + imgTotal, Notes: notes}, nil
+}
 
-	return &Pending{Path: path, Data: data, Hits: hits, Notes: notes}, nil
+// writeXLSX 把内存里的工作簿序列化成 xlsx 字节。
+// 用它代替 SaveAs：删图片的收尾要改 zip 结构，先落临时文件再读回来纯属多此一举。
+func writeXLSX(f *excelize.File) ([]byte, error) {
+	var buf bytes.Buffer
+	if err := f.Write(&buf); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// openXLSX 打开工作簿。包里若有用绝对路径写的关系目标（openpyxl、WPS 会这么写），
+// 先归一化成相对路径再交给 excelize，否则 DeletePicture 会静默失效、保存时还会
+// 写出与真实部件重名的 "/xl/..." 条目。归一化只在真有绝对目标时发生，
+// 返回的 cleanup 负责关闭工作簿并删掉临时文件。
+func openXLSX(path string) (*excelize.File, func(), error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, nil, err
+	}
+	data, changed, err := normalizeAbsRelTargets(raw)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !changed {
+		f, err := excelize.OpenFile(path)
+		if err != nil {
+			return nil, nil, err
+		}
+		return f, func() { f.Close() }, nil
+	}
+	tmp, err := os.CreateTemp("", ".desensitize-*"+strings.ToLower(filepath.Ext(path)))
+	if err != nil {
+		return nil, nil, err
+	}
+	name := tmp.Name()
+	if _, err := tmp.Write(data); err != nil {
+		tmp.Close()
+		_ = os.Remove(name)
+		return nil, nil, err
+	}
+	if err := tmp.Close(); err != nil {
+		_ = os.Remove(name)
+		return nil, nil, err
+	}
+	f, err := excelize.OpenFile(name)
+	if err != nil {
+		_ = os.Remove(name)
+		return nil, nil, err
+	}
+	return f, func() {
+		f.Close()
+		_ = os.Remove(name)
+	}, nil
 }
 
 // hasLeadingZero 判断 "0001" 这类值：写成数字会丢掉前导零，必须按文本写。
@@ -367,7 +476,8 @@ func isDateCell(f *excelize.File, sheet, cell string) bool {
 }
 
 // xlsxRisks 检查 xlsx 里 openpyxl/excelize 回写会丢的东西。
-func xlsxRisks(path string) []string {
+// stripImages 为真时不再提示「绘图对象会丢失」——启用删图规则时那是预期行为。
+func xlsxRisks(path string, stripImages bool) []string {
 	zr, err := zip.OpenReader(path)
 	if err != nil {
 		return nil
@@ -399,8 +509,8 @@ func xlsxRisks(path string) []string {
 	if charts > 0 {
 		out = append(out, fmt.Sprintf("该文件含 %d 个图表，回写后会丢失", charts))
 	}
-	if drawings > 0 {
-		out = append(out, fmt.Sprintf("该文件含 %d 个绘图对象（图片/形状），回写后会丢失", drawings))
+	if drawings > 0 && !stripImages {
+		out = append(out, fmt.Sprintf("该文件含 %d 个绘图对象（图片/形状）；未启用「删除图片」规则，本次不动它们", drawings))
 	}
 	if pivots > 0 {
 		out = append(out, "该文件含数据透视表，回写后会丢失")

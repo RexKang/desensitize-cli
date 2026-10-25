@@ -350,7 +350,7 @@ func runGUI(args []string, out io.Writer, in io.Reader) int {
 				_ = os.WriteFile(path, data, 0o644)
 				p.line("没找到 %s，已从 rules.sample.json 复制一份。", filepath.Base(path))
 			} else {
-				p.line("还没有 %s，先按空规则启动；左边挑一个案例就有规则了。", filepath.Base(path))
+				p.line("还没有 %s，先按空规则启动；界面上「模板」挑一个就有规则了。", filepath.Base(path))
 			}
 		}
 	}
@@ -881,7 +881,7 @@ func countPending(recs []report.FileRecord) int {
 	return n
 }
 
-// dirKey 取路径的前三段做目录分组，和 Python 版一致。
+// dirKey 取路径的前三段做目录分组。
 func dirKey(name string) string {
 	parts := strings.Split(filepath.ToSlash(name), "/")
 	if len(parts) > 3 {

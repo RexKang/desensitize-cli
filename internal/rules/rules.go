@@ -1,6 +1,6 @@
 // Package rules 定义脱敏规则模型：加载 JSON、编译匹配器、展开替换模板。
 //
-// 与 Python 版 rules.json 保持同一 schema，规则文件两边通用。
+// rules.json 是唯一格式：命令行、界面、内置案例共用同一份 schema。
 // Go 的 regexp 是 RE2，不支持 lookbehind/lookahead，因此 digit/word/ip_prefix
 // 这三类边界改成「匹配后断言」——先拿到匹配区间，再看前后字符是否合规。
 package rules
@@ -21,11 +21,12 @@ import (
 
 // 规则类型。
 const (
-	TypeLiteral = "literal"  // 字面替换/删除
-	TypeRegex   = "regex"    // 正则
-	TypeDigits  = "digits"   // 定长数字
-	TypeIPShift = "ip_shift" // IPv4 按段位移
-	TypeHash    = "hash"     // 定长 SHA-256
+	TypeLiteral     = "literal"      // 字面替换/删除
+	TypeRegex       = "regex"        // 正则
+	TypeDigits      = "digits"       // 定长数字
+	TypeIPShift     = "ip_shift"     // IPv4 按段位移
+	TypeHash        = "hash"         // 定长 SHA-256
+	TypeStripImages = "strip_images" // 删除 docx/xlsx 里的图片（含页眉页脚）
 )
 
 // 字面规则的边界模式。
@@ -194,11 +195,17 @@ func (r *Rule) Compile() error {
 			}
 			r.cidrs = append(r.cidrs, n)
 		}
+	case TypeStripImages:
+		// 结构型规则：不参与文本扫描，由 files 包在 docx / xlsx 处理时执行。
+		// 放在这里是为了让规则库、界面、案例共用同一套 schema。
 	default:
-		return fmt.Errorf("未知 type: %q（可选 literal/regex/digits/ip_shift/hash）", r.Type)
+		return fmt.Errorf("未知 type: %q（可选 literal/regex/digits/ip_shift/hash/strip_images）", r.Type)
 	}
 	return nil
 }
+
+// IsStripImages 判断是不是「删除图片」这种结构型规则。
+func (r *Rule) IsStripImages() bool { return r.Type == TypeStripImages }
 
 // Clone 浅拷贝规则切片（正则与网段指针共享，本身不可变）。
 // 界面里编辑「规则库副本」或给案例临时开关时用它，避免改到共享对象。
@@ -425,7 +432,7 @@ func (r *Rule) ShiftIP(ip string) string {
 }
 
 // HashToken 前段 SHA-256 等长变形，末尾 keep_tail 位原样保留。
-// 与 Python 版一致：只对 head 做摘要（salt+head），尾部原样拼回，
+// 只对 head 做摘要（salt+head），尾部原样拼回，
 // 摘要短于 head 时继续 sha256 摘要串接到够长。
 func (r *Rule) HashToken(s string) string {
 	runes := []rune(s)
